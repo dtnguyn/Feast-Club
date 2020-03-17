@@ -1,0 +1,39 @@
+body {
+  margin: 0;
+  background-color: #eb8242;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+@font-face {
+  font-family: 'DancingScript-Bold';
+  src: local('FiraSans'), url(../fonts/DancingScript-Bold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'DancingScript-Medium';
+  src: local('FiraSans'), url(../fonts/DancingScript-Medium.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Monserrat-Medium';
+  src: local('FiraSans'), url(../fonts/Montserrat-Medium.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Montserrat-Medium';
+  src: local('FiraSans'), url(../fonts/Montserrat-Bold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Montserrat-ExtraBold';
+  src: local('FiraSans'), url(../fonts/Montserrat-ExtraBold.ttf) format('truetype');
+}

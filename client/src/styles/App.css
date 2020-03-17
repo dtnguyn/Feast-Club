@@ -1,0 +1,25 @@
+
+
+.brand-icon-container {
+  margin: auto;
+  text-align: center;
+}
+
+.brand-icon-register{
+  display: block;
+  margin-bottom: 3rem;
+  font-size: 5rem;
+  color: #f6da63;
+}
+
+.facebook {
+  color: #1a4789;
+}
+
+.google {
+  color: #da2d2d;
+}
+
+
+
+  
