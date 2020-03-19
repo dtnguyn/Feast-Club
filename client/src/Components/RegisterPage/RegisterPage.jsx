@@ -13,8 +13,6 @@ import axios from "axios";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 
 function RegisterPage() {
-
-
   return (
     <div className="register-layout row">
       <div className="col-md-6 col-sm-12">

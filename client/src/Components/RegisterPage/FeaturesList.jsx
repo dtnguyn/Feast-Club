@@ -10,7 +10,6 @@ function FeaturesList(){
                 <li>Explore more places to eat in your city</li>
                 <li>Share your experiences at a restaurant</li>
             </ul>
-            
         </div>
     );
 }

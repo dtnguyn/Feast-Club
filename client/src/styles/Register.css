@@ -181,3 +181,17 @@ form{
     margin-top: 10px;
     color: #eb8242;
 }
+
+/* Status page */
+
+.register-status-page {
+    text-align: center;
+}
+
+.register-status-page h3{
+    margin: 10px;
+}
+
+.sign-in-new-account-redirect{
+    color: #f6da63;
+}

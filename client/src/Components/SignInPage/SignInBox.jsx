@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {Link} from "react-router-dom"
+import {Link, Redirect, useHistory} from "react-router-dom"
 
 import '../../styles/SignIn.css';
 
@@ -7,14 +7,28 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGoogle } from '@fortawesome/free-brands-svg-icons'
 import { faFacebook } from '@fortawesome/free-brands-svg-icons'
 
+import AlertDialog from '../SharedComponents/AlertDialog'
+
 import axios from "axios";
 
 function SignInBox(){
+
+    const [logInStatus, setLogInStatus] = useState(false)
+    const [dialog, setDialog] = useState(false);
+    const [message, setMessage] = useState("");
+
+    const successRoute = "/mainPage"
+    const failRoute = "/error"
+    const history = useHistory();
 
     const [logInUser, setLogInUser] = useState({
         email: "",
         password: ""
     })
+
+    function closeDialog(){
+        setDialog(false);
+    }
 
     function handleChange(event){
         const { name, value } = event.target;
@@ -32,16 +46,51 @@ function SignInBox(){
     function handleSignInButton(event){
 
         event.preventDefault();
-        
-        console.log(logInUser);
+    
 
-        axios.post("http://localhost:5000/signin/signinResult", logInUser)
-            .then(() => console.log('User Created'))
+        axios.post("http://localhost:5000/signin/authenticate", logInUser)
+            .then((response) => {
+                const logInStatus = response.data.logInStatus;
+                const id = response.data.id;
+                const messageSendBack = response.data.message;
+                if(logInStatus){
+                    history.push("/users/id:" + id);
+                } else{
+                    setMessage(messageSendBack);
+                    setDialog(true);
+                }
+            })
             .catch(err => {
                 console.log(err);
-        })
 
+            })
+
+    
     }
+
+    // function isValid(email, password){
+
+    //     //Check blank input
+    //     if(name, email, password, passwordCheck === "") {
+    //         console.log("is false")
+    //         setMessage( "You have left some blank fields!");
+    //         return false
+    //     }
+
+    //     //Check if email is valid
+    //     if(!validator.validate(email)){
+    //         setMessage( "Your email is invalid!");
+    //         return false
+    //     }
+
+    //     //Check if password and retype password is the same 
+    //     if(password != passwordCheck){
+    //         setMessage("Check your password again!");
+    //         return false
+    //     }
+
+    //     return isValid;
+    // }
 
 
     const redirectLinkStyle = {
@@ -76,6 +125,12 @@ function SignInBox(){
                 <FontAwesomeIcon className="brand-icon google" icon={faGoogle}/>
                 <FontAwesomeIcon className="brand-icon facebook" icon={faFacebook}/>
             </div>
+
+            <AlertDialog
+                open={dialog}
+                close={closeDialog}
+                alerMessage={message}
+            />
             
         </div>
         

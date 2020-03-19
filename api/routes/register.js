@@ -8,14 +8,36 @@ const { uuid } = require('uuidv4');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-const {Client} = require('pg')
-const client = new Client({
-    user: "postgres",
-    password: "0914ad0914",
-    host: "localhost",
-    port: 5432,
-    database: "feast_club_db"
-})
+const { Pool } = require('pg')
+const pool = new Pool({
+    user: process.env.PGUSER,
+    password: process.env.PGPASSWORD,
+    host: process.env.PGHOST,
+    port: process.env.PGPORT,
+    database: process.env.PGDATABASE
+});
+
+var registerStatus = false;
+
+// app.use(session({
+//     secret:"rho123yh4wierugfdq3r324rasdfwq3w",
+//     resave: false,
+//     saveUninitialized: false
+// }));
+
+// app.use(passport.initialize());
+// app.use(passport.session());
+
+// passport.serializeUser(function(user, done) {
+//     done(null, user.id);
+// });
+  
+// passport.deserializeUser(function(id, done) {
+//     User.findById(id, function(err, user) {
+//         done(err, user);
+//     });
+// });
+
 
 // passport.use(new GoogleStrategy({
 //     clientID: process.env.CLIENT_ID,
@@ -40,8 +62,8 @@ router.route('/add').post((req, res) => {
 
     bcrypt.hash(password, saltRounds, function(err,hash){
         if(!err){
-            addUser(name, email, hash);
-        } else {
+            addUser(name, email, hash, res);
+        } else {+
             console.log(err);
         }
     })
@@ -54,17 +76,23 @@ router.route('/add').post((req, res) => {
 //     res.redirect('/');
 // });
 
-async function addUser(name, email, password) {
-    try{
-        await client.connect();
-        console.log("Connect to database successfully!")
-        const table = await client.query("INSERT INTO users VALUES ($1, $2, $3, $4)", [uuid(), name, email, password]);
-        console.table(table.rows)
-    } catch (e){
-        console.log(e);
+function sendDataBack(logIn, message, res){
+    const dataSendBack = {
+        logInStatus: logIn,
+        message: message
+    }
+    res.send(dataSendBack);
+}
 
+async function addUser(name, email, password, res) {
+    try{
+        console.log("Connect to database successfully!")
+        await pool.query("INSERT INTO users VALUES ($1, $2, $3, $4)", [uuid(), name, email, password]);
+
+        sendDataBack(true, "", res);
+    } catch (e){
+        sendDataBack(false, "There's an error: " + e, res);
     } finally {
-        await client.end();
         console.log("Client disconnected successfully");
     }
 }
