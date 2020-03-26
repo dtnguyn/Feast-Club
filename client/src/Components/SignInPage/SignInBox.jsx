@@ -13,6 +13,8 @@ import axios from "axios";
 
 function SignInBox(){
 
+    axios.create({ withCredentials: true})
+
     const [logInStatus, setLogInStatus] = useState(false)
     const [dialog, setDialog] = useState(false);
     const [message, setMessage] = useState("");
@@ -46,9 +48,9 @@ function SignInBox(){
     function handleSignInButton(event){
 
         event.preventDefault();
-    
 
-        axios.post("http://localhost:5000/signin/authenticate", logInUser)
+    
+        axios.post("http://localhost:5000/signin", logInUser, {withCredentials: true})
             .then((response) => {
                 const logInStatus = response.data.logInStatus;
                 const id = response.data.id;

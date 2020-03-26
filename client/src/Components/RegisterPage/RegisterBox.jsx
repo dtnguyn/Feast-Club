@@ -60,7 +60,7 @@ function RegisterBox(){
             axios.post("http://localhost:5000/register/add", user)
                 .then(response => {
                     console.log('User Created');
-                    const registerStatus = response.data.logInStatus;
+                    const registerStatus = response.data.registerStatus;
                     if(registerStatus){
                         history.push("/register/status", registerStatus);
                     } else {

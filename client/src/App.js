@@ -6,18 +6,16 @@ import SignInPage from "./Components/SignInPage/SignInPage"
 import MainPage from "./Components/MainPage/MainPage"
 import RegisterStatusPage from "./Components/RegisterPage/RegisterStatusPage";  
 
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGoogle } from '@fortawesome/free-brands-svg-icons'
-import { faFacebook } from '@fortawesome/free-brands-svg-icons'
 import './styles/App.css';
 
 import axios from "axios";
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Route, Link , useHistory} from "react-router-dom";
 
 
 function App(props) {
 
+  //const history = useHistory();
+  
 
   return (
     <Router>
