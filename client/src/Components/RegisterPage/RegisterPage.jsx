@@ -15,9 +15,10 @@ import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 
 function RegisterPage() {
 
-  function handleRegister(){
+  function handleRegister(e){
+    e.preventDefault();
     console.log("clicked");
-    axios.get("http://localhost:5000/auth/google")
+    axios.get("http://localhost:5000/auth/google", {crossdomain: true})
       .then((response) => {
             // const logInStatus = response.data.logInStatus;
             // const id = response.data.id;
@@ -31,10 +32,6 @@ function RegisterPage() {
       })
   }
 
-  const responseGoogle = (response) => {
-    console.log(response);
-  }
-
   
 
   return (
@@ -46,7 +43,10 @@ function RegisterPage() {
         <RegisterBox/>
       </div>
       <div className="col-md-2 col-sm-12 brand-icon-container"> 
-        <FontAwesomeIcon onClick={handleRegister} className="brand-icon-register google" icon={faGoogle}/>
+        <a href="http://localhost:5000/auth/google">
+          <FontAwesomeIcon className="brand-icon-register google" icon={faGoogle}/>
+        </a>
+        
         <FontAwesomeIcon className="brand-icon-register facebook" icon={faFacebook}/>
       </div>
       <button>testApi</button>

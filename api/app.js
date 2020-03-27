@@ -28,9 +28,11 @@ var logInDataSendBack = {
 //middleware
 
 app.use(cors({
-    origin: "*",
+    origin: "http://localhost:3000",
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    credetials: 'true'
+    allowedHeaders: "Content-Type",
+    preflightContinue: false,
+    credentials: true
 }));
 // app.use(function (req, res, next) {
 
@@ -106,7 +108,7 @@ passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
     callbackURL: "http://localhost:5000/auth/google/feast_club",
-    userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
+    userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo'
   },
   function(accessToken, refreshToken, profile, cb) {
     console.log("authenticating");
@@ -120,15 +122,30 @@ async function addUser(name, email, password, res) {
         console.log("Connect to database successfully!")
         await pool.query("INSERT INTO users VALUES ($1, $2, $3, $4)", [uuid(), name, email, password]);
         
+        
         res.send({
             registerStatus: true,
             message: ""
         })
     } catch (e){
         res.send({
-            registerStatus: true,
-            message: ""
+            registerStatus: false,
+            message: "Register Unsuccessfully"
         })
+    } finally {
+        console.log("Client disconnected successfully");
+    }
+}
+
+async function addOauthUser(id, email, name) {
+    console.log("adding user....")
+    try{
+        console.log("Connect to database successfully!")
+        await pool.query("INSERT INTO oauth_users VALUES ($1, $2, $3)", [id, email, name]);
+        console.log("add user successfully")
+    } catch (e){
+        console.log(e);
+
     } finally {
         console.log("Client disconnected successfully");
     }
@@ -159,21 +176,25 @@ async function findUserByEmail(email) {
 async function findUserByIDOrCreate(profile, done) {
     try{
         console.log("Connect to database successfully!");
-        const table = await pool.query("SELECT id, email, password FROM users WHERE id = $1", [profile.id]);
-        if (table.rows != undefined){ // if there is a match id
+        const table = await pool.query("SELECT id, name, email FROM oauth_users WHERE id = $1", [profile.id]);
+        console.log(table.rows);
+        if (table.rows[0] != undefined){ // if there is a match id
             const user = {
                 id: table.rows[0].id,
-                email: table.rows[0].email,
-                password: table.rows[0].password
+                name: table.rows[0].name,
+                email: table.rows[0].email
             }
+            setLogInData(true, user.id, "");
             return done(null, user)
         } else { // if there is no match id
-            console.log("no founded user");
+            console.log("no founded user here");
+            console.log(profile)
             const user = {
                 id: profile.id,
-                email: profile.emails[0].value,
-                password: uuid()
+                name: profile.displayName,
+                email: profile.emails[0].value
             }
+            addOauthUser(user.id, user.email, user.name);
             done(null, user);
         }  
     } catch (e){
@@ -185,19 +206,26 @@ async function findUserByIDOrCreate(profile, done) {
 }
 
 
-
 async function findUserByIDToDeserialize(id, done) {
     try{
         console.log("Connect to database successfully!");
-        console.log("id: " + id)
+        console.log("id: " + id);
         const table = await pool.query("SELECT id, email, password FROM users WHERE id = $1", [id]);
-        if (table.rows != undefined){ // if there is a match id
+        const oauthTable = await pool.query("SELECT id, email FROM oauth_users WHERE id = $1", [id]);
+        if (table.rows[0] != undefined){ // if there is a match id
             const user = {
                 id: table.rows[0].id,
                 email: table.rows[0].email,
                 password: table.rows[0].password
             }
-            return done(null, user)
+            return done(null, user);
+        } else if(oauthTable.rows[0] != undefined) {
+            const user = {
+                id: oauthTable.rows[0].id,
+                email: oauthTable.rows[0].email,
+            }
+            setLogInData(true, user.id, "");
+            return done(null, user);
         } else { // if there is no match id
             console.log("no founded user");
             done(null, false);
@@ -228,7 +256,7 @@ function setLogInData(status, id, message){
 //Routes
 
 app.get("/", (req, res) => {
-    console.log("it is called.." + req.isAuthenticated());
+    console.log("it is called.." );
     if(req.isAuthenticated()){
         res.send(logInDataSendBack)
         console.log("is authenticated");
@@ -236,6 +264,7 @@ app.get("/", (req, res) => {
         console.log("..but not working");
     }
 })
+
 
 
 /* Register routes */
@@ -305,8 +334,14 @@ app.post('/signin', passport.authenticate('local'), function(req, res) {
 
 
 app.get('/auth/google',
-  passport.authenticate('google', { scope: ['profile'] }));
+  passport.authenticate('google', { scope: ['profile', 'email'] }));
 
+app.get('/auth/google/feast_club', 
+  passport.authenticate('google', { failureRedirect: '/signin' }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.status(301).redirect('http://localhost:3000/users/id:' + logInDataSendBack.id);
+});
 
 
 // const registerRouter = require('./routes/register');
