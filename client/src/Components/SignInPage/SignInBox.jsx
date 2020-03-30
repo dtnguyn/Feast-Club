@@ -53,10 +53,9 @@ function SignInBox(){
         axios.post("http://localhost:5000/signin", logInUser, {withCredentials: true})
             .then((response) => {
                 const logInStatus = response.data.logInStatus;
-                const id = response.data.id;
                 const messageSendBack = response.data.message;
                 if(logInStatus){
-                    history.push("/users/id:" + id);
+                    history.push("/mainPage");
                 } else{
                     setMessage(messageSendBack);
                     setDialog(true);
@@ -124,14 +123,19 @@ function SignInBox(){
                 <Link style={redirectLinkStyle} to="/register"><p className="register-redirect">Don't have an acccount? Register for free!</p></Link>
             </div>
             <div>
-                <FontAwesomeIcon className="brand-icon google" icon={faGoogle}/>
-                <FontAwesomeIcon className="brand-icon facebook" icon={faFacebook}/>
+                <a href="http://localhost:5000/auth/google">
+                    <FontAwesomeIcon className="brand-icon google" icon={faGoogle}/>
+                </a>
+                <a href="http://localhost:5000/auth/facebook">
+                    <FontAwesomeIcon className="brand-icon facebook" icon={faFacebook}/>
+                </a>
             </div>
 
             <AlertDialog
                 open={dialog}
                 close={closeDialog}
-                alerMessage={message}
+                alertTitle="Cannot sign in!"
+                alertMessage={message}
             />
             
         </div>

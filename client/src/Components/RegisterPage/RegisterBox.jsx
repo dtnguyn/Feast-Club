@@ -141,7 +141,8 @@ function RegisterBox(){
             <AlertDialog
                 open={open}
                 close={closeDialog}
-                alerMessage={message}
+                alertTitle="Cannot register!"
+                alertMessage={message}
             />
         </div>
         

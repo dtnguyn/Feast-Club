@@ -46,8 +46,9 @@ function RegisterPage() {
         <a href="http://localhost:5000/auth/google">
           <FontAwesomeIcon className="brand-icon-register google" icon={faGoogle}/>
         </a>
-        
-        <FontAwesomeIcon className="brand-icon-register facebook" icon={faFacebook}/>
+        <a href="http://localhost:5000/auth/facebook">
+          <FontAwesomeIcon className="brand-icon-register facebook" icon={faFacebook}/>
+        </a>
       </div>
       <button>testApi</button>
     </div>

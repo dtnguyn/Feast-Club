@@ -8,9 +8,12 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
 const pool = require("./db");
 const { uuid } = require('uuidv4');
 const axios = require('axios');
+const nodemailer = require("nodemailer");
+const superagent = require('superagent');
 
 //To hast password before save in database
 const bcrypt = require('bcrypt');
@@ -79,13 +82,11 @@ passport.use(new LocalStrategy({
 
         if (user === undefined) { 
             console.log("debug1");
-            setLogInData(false, "", "Invalid email and/or password!")
             return done(null, false); 
         }
         
         checkPassword = await verifyPassword(user, password)
         if(!checkPassword){
-            setLogInData(false, "", "Invalid email and/or password!")
             return done(null, false);
         } 
 
@@ -104,6 +105,7 @@ passport.deserializeUser(function(id, done) {
     findUserByIDToDeserialize(id, done);
 });
 
+//Google Strategy
 passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
@@ -112,6 +114,18 @@ passport.use(new GoogleStrategy({
   },
   function(accessToken, refreshToken, profile, cb) {
     console.log("authenticating");
+    findUserByIDOrCreate(profile, cb);
+  }
+));
+
+//Facebook Strategy
+passport.use(new FacebookStrategy({
+    clientID: process.env.FACEBOOK_APP_ID,
+    clientSecret: process.env.FACEBOOK_APP_SECRET,
+    callbackURL: "http://localhost:5000/auth/facebook/feast_club",
+    profileFields: ['id', 'emails', 'name'] 
+  },
+  function(accessToken, refreshToken, profile, cb) {
     findUserByIDOrCreate(profile, cb);
   }
 ));
@@ -157,7 +171,7 @@ async function findUserByEmail(email) {
     try{
         console.log("Connect to database successfully!");
         const table = await pool.query("SELECT id, email, password FROM users WHERE email = $1", [email]);
-        if (table.rows != undefined){ // if there is a match email
+        if (table.rows[0] != undefined){ // if there is a match email
             return user = {
                 id: table.rows[0].id,
                 email: table.rows[0].email,
@@ -191,7 +205,7 @@ async function findUserByIDOrCreate(profile, done) {
             console.log(profile)
             const user = {
                 id: profile.id,
-                name: profile.displayName,
+                name: profile.displayName || profile.name.givenName + " " + profile.name.familyName,
                 email: profile.emails[0].value
             }
             addOauthUser(user.id, user.email, user.name);
@@ -253,16 +267,61 @@ function setLogInData(status, id, message){
     logInDataSendBack.id = id;
     logInDataSendBack.message = message;
 }
+
+async function sendVerificationEmail(){
+    let testAccount = await nodemailer.createTestAccount();
+
+    // create reusable transporter object using the default SMTP transport
+    let transporter = nodemailer.createTransport({
+        host: "smtp.ethereal.email",
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+        user: testAccount.user, // generated ethereal user
+        pass: testAccount.pass // generated ethereal password
+        }
+    });
+
+    // send mail with defined transport object
+    let info = await transporter.sendMail({
+        from: '<adron0914@gmail.com>', // sender address
+        to: "dtnguyen03@student.ysu.edu", // list of receivers
+        subject: "Hello ✔", // Subject line
+        text: "Hello world?", // plain text body
+        html: "<b>Hello world?</b>" // html body
+    });
+
+    console.log(info.messageId);
+
+}
+
+function getData(){
+
+    
+
+
+    var url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=10.762622,106.660172&radius=1500&type=restaurante&key=" + process.env.GOOGLE_API_KEY;
+    
+    superagent.get(url).end((err, res) => {
+        if (err) { return console.log(err); }
+        console.log(res.body);
+    });
+}
+
 //Routes
 
+
 app.get("/", (req, res) => {
-    console.log("it is called.." );
+    console.log("is called");
+    //sendVerificationEmail();
     if(req.isAuthenticated()){
-        res.send(logInDataSendBack)
+        res.send({
+            logInStatus: true,
+            message: ""
+        });
+        //getData();
         console.log("is authenticated");
-    } else {
-        console.log("..but not working");
-    }
+    } else res.send();
 })
 
 
@@ -290,7 +349,7 @@ app.post("/register/add", (req, res) =>{
 
 /* Sign in routes */
 
-// app.post('/signin' ,(req, res, next) =>{
+app.post('/signin' ,(req, res, next) =>{
 //     // if(req.body.email !== "" && req.body.password !== ""){
 //     //     passport.authenticate("local")(req, res, () => {
 //     //         req.logIn(user, function (err) { // <-- Log user in
@@ -305,44 +364,63 @@ app.post("/register/add", (req, res) =>{
 //     //     })
 //     // }
 
-//     passport.authenticate('local', function(err, user, info) {
-//         if (err) { 
-//             console.log(err);
-//             return next(err);
-//         }
-//         if (!user) { 
-//             return res.redirect('/signin'); 
-//         }
-//         req.logIn(user, function(err) {
-//             console.log("Before redirect: " + req.session.passport);
-//             if (err) { 
-//                 console.log(err);
-//                 return next(err); 
-//             }
-//             return res.redirect('/');
-//         });
-//       })(req, res, next);
+    passport.authenticate('local', function(err, user, info) {
+        if (err) { 
+            console.log(err);
+            return next(err);
+        }
+        if (!user) { 
+            console.log("no user");
+            return res.send({
+                logInStatus: false,
+                message: "Invalid email and/or password!"
+            })
+        }
+        req.logIn(user, function(err) {
+            console.log("Before redirect: " + req.session.passport);
+            if (err) { 
+                console.log(err);
+                return next(err); 
+            }
+            return res.redirect('/');
+        });
+      })(req, res, next);
+ });
+
+// app.post('/signin', passport.authenticate('local'), function(req, res) {
+//     req.logIn(user, function (err) { // <-- Log user in
+//         console.log(err);
+//         return res.redirect('/'); 
+//     });
 // });
 
-app.post('/signin', passport.authenticate('local'), function(req, res) {
-    console.log(req.session);
-    req.logIn(user, function (err) { // <-- Log user in
-        console.log(err);
-        return res.redirect('/'); 
-    });
-});
 
 
 app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] }));
 
 app.get('/auth/google/feast_club', 
-  passport.authenticate('google', { failureRedirect: '/signin' }),
+  passport.authenticate('google'),
   function(req, res) {
     // Successful authentication, redirect home.
     res.status(301).redirect('http://localhost:3000/users/id:' + logInDataSendBack.id);
 });
 
+app.get('/auth/facebook',
+  passport.authenticate('facebook', { scope : ['email'] }));
+
+
+app.get('/auth/facebook/feast_club',
+  passport.authenticate('facebook'),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.status(301).redirect('http://localhost:3000/users/id:' + logInDataSendBack.id);
+  });
+
+
+
+
+  
 
 // const registerRouter = require('./routes/register');
 // const signinRouter = require('./routes/signin');

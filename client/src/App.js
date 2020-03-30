@@ -23,7 +23,7 @@ function App(props) {
       <Route path="/register" exact component={RegisterPage} />
       <Route path="/register/status" component={RegisterStatusPage}/>
       <Route path="/signin" component={SignInPage} />
-      <Route path="/users" component={MainPage}/>
+      <Route path="/mainPage" component={MainPage}/>
       
     </Router>
   );
