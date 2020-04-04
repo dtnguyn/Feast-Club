@@ -57,7 +57,7 @@ function RegisterBox(){
                 password: newUser.passwordCheck
             }
 
-            axios.post("http://localhost:5000/register/add", user)
+            axios.post("http://localhost:5000/register", user)
                 .then(response => {
                     console.log('User Created');
                     const registerStatus = response.data.registerStatus;

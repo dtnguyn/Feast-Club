@@ -14,6 +14,9 @@ const { uuid } = require('uuidv4');
 const axios = require('axios');
 const nodemailer = require("nodemailer");
 const superagent = require('superagent');
+const cities = require('all-the-cities');
+const unirest = require("unirest");
+
 
 //To hast password before save in database
 const bcrypt = require('bcrypt');
@@ -37,24 +40,6 @@ app.use(cors({
     preflightContinue: false,
     credentials: true
 }));
-// app.use(function (req, res, next) {
-
-//     // Website you wish to allow to connect
-//     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
-
-//     // Request methods you wish to allow
-//     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-//     // Request headers you wish to allow
-//     //res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-
-//     // Set to true if you need the website to include cookies in the requests sent
-//     // to the API (e.g. in case you use sessions)
-//     res.setHeader('Access-Control-Allow-Credentials', true);
-
-//     // Pass to next layer of middleware
-//     next();
-// });
 
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -90,7 +75,7 @@ passport.use(new LocalStrategy({
             return done(null, false);
         } 
 
-        setLogInData(true, user.id, "")
+        //setLogInData(true, user.id, "")
         return done(null, user);
     }
 ));
@@ -130,18 +115,20 @@ passport.use(new FacebookStrategy({
   }
 ));
 
+/* Functions */
 
 async function addUser(name, email, password, res) {
     try{
         console.log("Connect to database successfully!")
-        await pool.query("INSERT INTO users VALUES ($1, $2, $3, $4)", [uuid(), name, email, password]);
-        
-        
+        id = await uuid();
+        await pool.query("INSERT INTO users VALUES ($1, $2, $3, $4)", [id, name, email, password]);
+        await pool.query("INSERT INTO user_ids VALUES ($1, $2)", [id, email]);
         res.send({
             registerStatus: true,
             message: ""
         })
     } catch (e){
+        console.log(e);
         res.send({
             registerStatus: false,
             message: "Register Unsuccessfully"
@@ -151,12 +138,13 @@ async function addUser(name, email, password, res) {
     }
 }
 
+
 async function addOauthUser(id, email, name) {
-    console.log("adding user....")
     try{
         console.log("Connect to database successfully!")
         await pool.query("INSERT INTO oauth_users VALUES ($1, $2, $3)", [id, email, name]);
-        console.log("add user successfully")
+        await pool.query("INSERT INTO user_ids VALUES ($1, $2)", [id, email]);
+
     } catch (e){
         console.log(e);
 
@@ -198,7 +186,7 @@ async function findUserByIDOrCreate(profile, done) {
                 name: table.rows[0].name,
                 email: table.rows[0].email
             }
-            setLogInData(true, user.id, "");
+            //setLogInData(true, user.id, "");
             return done(null, user)
         } else { // if there is no match id
             console.log("no founded user here");
@@ -238,7 +226,7 @@ async function findUserByIDToDeserialize(id, done) {
                 id: oauthTable.rows[0].id,
                 email: oauthTable.rows[0].email,
             }
-            setLogInData(true, user.id, "");
+            //setLogInData(true, user.id, "");
             return done(null, user);
         } else { // if there is no match id
             console.log("no founded user");
@@ -268,71 +256,156 @@ function setLogInData(status, id, message){
     logInDataSendBack.message = message;
 }
 
-async function sendVerificationEmail(){
-    let testAccount = await nodemailer.createTestAccount();
 
-    // create reusable transporter object using the default SMTP transport
-    let transporter = nodemailer.createTransport({
-        host: "smtp.ethereal.email",
-        port: 587,
-        secure: false, // true for 465, false for other ports
-        auth: {
-        user: testAccount.user, // generated ethereal user
-        pass: testAccount.pass // generated ethereal password
+function getNearbyRestaurantsByGoogle(lat, lng, response){
+    console.log(lat, lng);
+    var url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+ lat + "," + lng + "&radius=1500&type=restaurant&key=" + process.env.GOOGLE_API_KEY;
+
+    superagent.get(url).end((err, res) => {
+        if (err) 
+            return console.log(err); 
+        else {
+            const latLng = {
+                lat: lat,
+                lng: lng
+            }
+            console.log(res.body);
+            response.send({
+                location: latLng,
+                restaurants: res.body
+            });
         }
+        
+        
     });
-
-    // send mail with defined transport object
-    let info = await transporter.sendMail({
-        from: '<adron0914@gmail.com>', // sender address
-        to: "dtnguyen03@student.ysu.edu", // list of receivers
-        subject: "Hello ✔", // Subject line
-        text: "Hello world?", // plain text body
-        html: "<b>Hello world?</b>" // html body
-    });
-
-    console.log(info.messageId);
-
 }
 
-function getData(){
+function getNearbyRestaurantsByTripsAdvisor(lat,lng, response){
+    var req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
 
-    
-
-
-    var url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=10.762622,106.660172&radius=1500&type=restaurante&key=" + process.env.GOOGLE_API_KEY;
-    
-    superagent.get(url).end((err, res) => {
-        if (err) { return console.log(err); }
-        console.log(res.body);
+    req.query({
+        "limit": "30",
+        "currency": "USD",
+        "distance": "2",
+        "lunit": "km",
+        "lang": "en_US",
+        "latitude": lat,
+        "longitude": lng
     });
+
+    req.headers({
+        "x-rapidapi-host": "tripadvisor1.p.rapidapi.com",
+        "x-rapidapi-key": "7671356523mshf5fc94df33e09eep1dfeb2jsn2065788690cf"
+    });
+
+
+    req.end(function (res) {
+        if (res.error) throw new Error(res.error);
+        
+        const latLng = {
+            lat: lat,
+            lng: lng
+        }
+        console.log(res.body);
+        response.send({
+            location: latLng,
+            restaurants: res.body
+        });
+    });
+
+            
+    // const latLng = {
+    //     lat: lat,
+    //     lng: lng
+    // }
+    // response.send({
+    //     location: latLng,
+    //     restaurants: null
+    // });
+    
+}
+
+function addLocation(id, lat, lng, city, state, country){
+    try{
+        console.log("Connect to database successfully!")
+        pool.query("INSERT INTO user_locations VALUES ($1, $2, $3, $4, $5, $6)", [id, lat, lng, city, state, country]);
+        return true;
+    } catch (e){
+        console.log(e);
+        return false;
+    } finally {
+        console.log("Client disconnected successfully");
+    }
+}
+
+async function sendLocalData(id, res){
+    try {
+        console.log("Try to get the user location");
+        const table = await pool.query("SELECT latitude, longitude FROM user_locations WHERE user_id = $1", [id]);
+        if(table.rows[0] != undefined){// The current logged in user has already provided location
+            getNearbyRestaurantsByTripsAdvisor(table.rows[0].latitude, table.rows[0].longitude, res)
+        } else {// The current logged in user has not provided location
+            console.log("The user has not provided any location info");
+            res.send({
+                location: null,
+                restaurants: null
+            });
+            
+        }
+    } catch (e) {
+        console.log("getUserLocation Error: " + e);
+    } finally{
+        console.log("Finish getting user location");
+    }
 }
 
 //Routes
 
+/* GET routes */
 
 app.get("/", (req, res) => {
-    console.log("is called");
-    //sendVerificationEmail();
     if(req.isAuthenticated()){
         res.send({
             logInStatus: true,
-            message: ""
-        });
-        //getData();
+            message: "",
+        })
         console.log("is authenticated");
     } else res.send();
-})
+});
+
+app.get('/nearbyrestaurants', function(req, res){
+    if(req.isAuthenticated()){
+        sendLocalData(req.session.passport.user, res);
+    }
+});
+
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+app.get('/auth/google/feast_club', 
+  passport.authenticate('google'),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.status(301).redirect('http://localhost:3000/users/id:' + logInDataSendBack.id);
+});
+
+app.get('/auth/facebook',
+  passport.authenticate('facebook', { scope : ['email'] }));
+
+
+app.get('/auth/facebook/feast_club',
+  passport.authenticate('facebook'),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.status(301).redirect('http://localhost:3000/mainPage:');
+  });
 
 
 
-/* Register routes */
 
-app.get("/register", (req, res)=>{
-    console.log("This register route")
-})
+/* POST routes */
 
-app.post("/register/add", (req, res) =>{
+app.post("/register", (req, res) =>{
     const name = req.body.name;
     const email = req.body.email;
     const password = req.body.password;
@@ -344,26 +417,9 @@ app.post("/register/add", (req, res) =>{
             console.log(err);
         }
     })
-})
-
-
-/* Sign in routes */
+});
 
 app.post('/signin' ,(req, res, next) =>{
-//     // if(req.body.email !== "" && req.body.password !== ""){
-//     //     passport.authenticate("local")(req, res, () => {
-//     //         req.logIn(user, function (err) { // <-- Log user in
-//     //             return res.redirect('/'); 
-//     //          });
-//     //     });
-//     // } else {
-//     //     res.send({
-//     //         logInStatus: false,
-//     //         id: "",
-//     //         message: "You have to filled out your email and password!"
-//     //     })
-//     // }
-
     passport.authenticate('local', function(err, user, info) {
         if (err) { 
             console.log(err);
@@ -387,49 +443,15 @@ app.post('/signin' ,(req, res, next) =>{
       })(req, res, next);
  });
 
-// app.post('/signin', passport.authenticate('local'), function(req, res) {
-//     req.logIn(user, function (err) { // <-- Log user in
-//         console.log(err);
-//         return res.redirect('/'); 
-//     });
-// });
+app.post('/savelocation', (req,res) => {
+    const id = req.session.passport.user;
+    const lat = req.body.lat;
+    const lng = req.body.lng;
+    const city = req.body.city;
+    const state = req.body.state;
+    const country = req.body.country;
+    res.send(addLocation(id, lat, lng, city, state, country));
+})
 
 
-
-app.get('/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-app.get('/auth/google/feast_club', 
-  passport.authenticate('google'),
-  function(req, res) {
-    // Successful authentication, redirect home.
-    res.status(301).redirect('http://localhost:3000/users/id:' + logInDataSendBack.id);
-});
-
-app.get('/auth/facebook',
-  passport.authenticate('facebook', { scope : ['email'] }));
-
-
-app.get('/auth/facebook/feast_club',
-  passport.authenticate('facebook'),
-  function(req, res) {
-    // Successful authentication, redirect home.
-    res.status(301).redirect('http://localhost:3000/users/id:' + logInDataSendBack.id);
-  });
-
-
-
-
-  
-
-// const registerRouter = require('./routes/register');
-// const signinRouter = require('./routes/signin');
-// const mainPageRouter = require('./routes/mainPage')
-
-// app.use('/register', registerRouter);
-// app.use('/signin', passport.authenticate("local", {session = false}), signinRouter);
-// app.use('/mainPage', mainPageRouter);
-
-
-
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.listen(port, () => console.log(`Feast Club is running on port ${port}!`));
