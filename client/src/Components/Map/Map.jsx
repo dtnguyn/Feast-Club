@@ -6,6 +6,9 @@ import axios from "axios";
 
 import testRestaurants from "../../restaurants"
 import mapStyles from "../../mapStyles";
+import WindowInfo from "./WindowInfo"
+import "../../styles/Map.css"
+
 
 function MapSetUp(){
     const [latLng, setLatLng] = useState({
@@ -17,13 +20,19 @@ function MapSetUp(){
     })
     const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
+    const defaultMapOptions = {
+        fullscreenControl: false,
+        disableDefaultUI: true,
+        styles: mapStyles
+    };
+
     if(latLng.lat === 0 && latLng.lng === 0){
         axios.get("http://localhost:5000/nearbyrestaurants", {withCredentials: true})
             .then((response) => {
                 if(response.data.location != null){
                     console.log(response.data);
                     setLatLng(response.data.location);
-                    setRestaurants(response.data.restaurants);
+                    setRestaurants(testRestaurants);
                 } 
             })
             .catch(err => {
@@ -32,9 +41,9 @@ function MapSetUp(){
     }
     return (
         <GoogleMap
-        defaultOptions={{styles: mapStyles}}
-        defaultZoom={15}
+        defaultZoom={16}
         defaultCenter={{ lat: 0, lng: 0}}
+        defaultOptions={defaultMapOptions}
         center={{lat: parseFloat(latLng.lat), lng: parseFloat(latLng.lng)}}>
             {latLng.lat === 0 && latLng.lng === 0 
                 ? <LocationInfoForm/> 
@@ -51,7 +60,7 @@ function MapSetUp(){
                         url: '/thinking.svg',
                         scaledSize: new window.google.maps.Size(40, 40)
                     }}
-                />
+                    />
                 }
             {restaurants.data.map(restaurant => (
                 <Marker
@@ -70,9 +79,6 @@ function MapSetUp(){
                 />
             ))}
             
-            
-
-
             {selectedRestaurant && (
                 <InfoWindow
                     position={{
@@ -102,7 +108,8 @@ const WrappedMap = withScriptjs(withGoogleMap(MapSetUp))
 function Map(){
     
     return(
-        <div style={{width: '100vw', height: '100vh'}}>
+        <div className="map-container row">
+            <div clasName="map col-md-9 col-sm-12" style={{width: '75.5vw', height: '100vh'}}>
             <WrappedMap
                 googleMapURL=
                 {'https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places&key='}
@@ -110,7 +117,16 @@ function Map(){
                 containerElement={<div style={{height: "100%"}}/>}
                 mapElement={<div style={{height: "100%"}}/>}
             />
+            </div>
+            
+            <div className="window-info col-md-3">
+                <WindowInfo 
+                    restaurantsCount={testRestaurants.data.length}
+                    restaurants={testRestaurants}
+                />
+            </div>
         </div>
+        
     )
 }
 

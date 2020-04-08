@@ -30,6 +30,7 @@ h3 {
 /* Register Page */
 .register-layout {
     text-align: center;
+    overflow: hidden;
 }
 
 

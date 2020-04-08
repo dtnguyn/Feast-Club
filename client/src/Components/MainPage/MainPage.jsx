@@ -2,12 +2,13 @@ import React, { useState } from "react";
 
 import Map from "../Map/Map"
 import FormDialog from "../Map/LocationInfoForm"
+import WindowInfo from "../Map/WindowInfo"
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { faFacebook } from '@fortawesome/free-brands-svg-icons';
 
-import '../../styles/Register.css';
+import "../../styles/Map.css";
 
 import axios from "axios";
 import { BrowserRouter as Router, Route, Link, useHistory } from "react-router-dom";
@@ -32,7 +33,7 @@ function MainPage(props) {
       })
 
   return (
-    <div>
+    <div className="map-container">
       <Map/>
     </div>
   );

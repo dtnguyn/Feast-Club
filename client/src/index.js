@@ -7,6 +7,8 @@ import './fonts/DancingScript-Bold.ttf'
 import './fonts/DancingScript-Medium.ttf'
 import './fonts/DancingScript-Regular.ttf'
 import './fonts/DancingScript-SemiBold.ttf'
+import './fonts/BalooBhai-Regular.ttf'
+import './fonts/Montserrat-Light.ttf'
 
 import App from './App';
 import RegisterStatusPage from "./Components/RegisterPage/RegisterStatusPage"

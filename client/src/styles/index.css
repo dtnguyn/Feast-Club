@@ -37,3 +37,14 @@ code {
   font-family: 'Montserrat-ExtraBold';
   src: local('FiraSans'), url(../fonts/Montserrat-ExtraBold.ttf) format('truetype');
 }
+
+@font-face {
+  font-family: 'Montserrat-Light';
+  src: local('FiraSans'), url(../fonts/Montserrat-Light.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'BalooBhai-Regular';
+  src: local('FiraSans'), url(../fonts/BalooBhai-Regular.ttf) format('truetype');
+}
+

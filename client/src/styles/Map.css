@@ -1,0 +1,93 @@
+
+/* Map */
+
+.map-container{
+    overflow: hidden;
+
+}
+
+.map {
+    
+}
+
+
+
+/* Window info */
+
+.window-info {
+    overflow-y: scroll;
+    background: #f6da63;
+    height: 100vh;
+    margin-right: 0;
+}
+
+
+.window-info-icon {
+    font-size: 2.2rem;
+    color: #eb8242;
+    margin: 20px;
+}
+
+#compass {
+    float: right;
+}
+
+.input-searchBar-window-info[type=text] {
+    width: 80%;   
+    box-sizing: border-box;
+    border: 2px solid #eb8242;
+    border-radius: 4px;
+    font-size: 16px;
+    color: #f6da63;
+    background-color: #eb8242;
+    background-image: url('../images/search_icon.png');
+    background-position: 10px 10px; 
+    background-repeat: no-repeat;
+    padding: 12px 20px 12px 40px;
+    -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
+    display: flex;
+    margin: 5% auto;
+  }
+  
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #f6da63;}
+
+.window-info-title{
+    margin: 10%;
+    text-align: center;
+    font-size: 1.75rem;
+    font-family: Montserrat-Medium;
+    color: #eb8242;
+}
+
+.info-box {
+    background-color: #fafafa;
+    width: 90%;
+    height: auto;
+    border-radius: 5%;
+    text-align: center;
+    margin: auto;
+    margin-bottom: 10%;
+    padding: 12px 5px 2px;
+}
+
+.info-box h4{
+    font-family: BalooBhai-Regular;
+    color: #eb8242;
+}
+
+.info-name{
+    font-family: Montserrat-ExtraBold;
+    color: #eb8242;
+}
+
+
+.info-box-content{
+    font-family: Montserrat-Light;
+    color: #eb8242;
+}
+
+
+
+

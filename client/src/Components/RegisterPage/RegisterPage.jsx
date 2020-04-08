@@ -50,7 +50,6 @@ function RegisterPage() {
           <FontAwesomeIcon className="brand-icon-register facebook" icon={faFacebook}/>
         </a>
       </div>
-      <button>testApi</button>
     </div>
   );
 }
