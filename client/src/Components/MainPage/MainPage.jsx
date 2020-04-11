@@ -13,12 +13,11 @@ import "../../styles/Map.css";
 import axios from "axios";
 import { BrowserRouter as Router, Route, Link, useHistory } from "react-router-dom";
 
+
 function MainPage(props) {
 
   const history = useHistory();
 
-  
-  
   axios.get("http://localhost:5000/", {withCredentials: true})
       .then((response) => {
             const logInStatus = response.data.logInStatus;

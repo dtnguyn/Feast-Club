@@ -7,11 +7,11 @@ import '../../styles/Map.css'
 function InfoBox(props){
     return(
         <div className="info-box">
-          <h4>{props.restaurantName}</h4>
-          <p className="info-box-content">{props.description}</p>
-          <InfoBoxLine name="Address" content={props.address}/>
-          <InfoBoxLine name="Cuisine" content={props.address}/>
-          <InfoBoxLine name="Rating" content={props.rating}/>
+          <h4 className="info-box-title">{props.restaurantName}</h4>
+          <p className="info-box-title">{props.priceLevel}</p>
+          {props.address != "" &&  props.address != undefined ?  <InfoBoxLine name="Address" content={props.address}/> : null}
+          {props.cuisine != "" && props.cuisine != undefined  ? <InfoBoxLine name="Cuisine" content={props.cuisine}/> : null}
+          {props.rating != "" && props.rating != undefined  ? <InfoBoxLine name="Rating" content={props.rating}/> : null}
         </div>
     );
     

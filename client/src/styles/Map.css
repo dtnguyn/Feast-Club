@@ -16,7 +16,8 @@
 
 .window-info {
     overflow-y: scroll;
-    background: #f6da63;
+background: rgb(255,235,155);
+background: linear-gradient(90deg, rgba(255,235,155,1) 0%, rgba(246,218,99,1) 100%);
     height: 100vh;
     margin-right: 0;
 }
@@ -57,7 +58,7 @@
     margin: 10%;
     text-align: center;
     font-size: 1.75rem;
-    font-family: Montserrat-Medium;
+    font-family: BalooBhai-Regular;
     color: #eb8242;
 }
 
@@ -72,7 +73,8 @@
     padding: 12px 5px 2px;
 }
 
-.info-box h4{
+
+.info-box-title{
     font-family: BalooBhai-Regular;
     color: #eb8242;
 }
@@ -80,12 +82,14 @@
 .info-name{
     font-family: Montserrat-ExtraBold;
     color: #eb8242;
+    margin-bottom: 0;
 }
 
 
 .info-box-content{
     font-family: Montserrat-Light;
     color: #eb8242;
+    
 }
 
 

@@ -25,9 +25,14 @@ function WindowInfo(props){
         {props.restaurants.data.map((restaurant) => (
           <InfoBox 
           restaurantName={restaurant.name}
-          description={restaurant.description}
+          priceLevel={restaurant.price_level}
           address={restaurant.address} 
-          cuisine={restaurant.cuisine} 
+          cuisine={restaurant.cuisine != undefined && restaurant.cuisine[0] != undefined
+                  ? restaurant.cuisine.map(type => {
+
+                    return type.name + (restaurant.cuisine.indexOf(type) != restaurant.cuisine.length - 1 ? ", " : "");
+                  })
+                  : ""} 
           rating={restaurant.rating}/>
         ))}
         

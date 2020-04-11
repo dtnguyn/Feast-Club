@@ -281,47 +281,47 @@ function getNearbyRestaurantsByGoogle(lat, lng, response){
 }
 
 function getNearbyRestaurantsByTripsAdvisor(lat,lng, response){
-    // var req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
+    const req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
 
-    // req.query({
-    //     "limit": "30",
-    //     "currency": "USD",
-    //     "distance": "2",
-    //     "lunit": "km",
-    //     "lang": "en_US",
-    //     "latitude": lat,
-    //     "longitude": lng
-    // });
+    req.query({
+        "limit": "30",
+        "currency": "USD",
+        "distance": "2",
+        "lunit": "km",
+        "lang": "en_US",
+        "latitude": lat,
+        "longitude": lng
+    });
 
-    // req.headers({
-    //     "x-rapidapi-host": "tripadvisor1.p.rapidapi.com",
-    //     "x-rapidapi-key": "7671356523mshf5fc94df33e09eep1dfeb2jsn2065788690cf"
-    // });
+    req.headers({
+        "x-rapidapi-host": "tripadvisor1.p.rapidapi.com",
+        "x-rapidapi-key": "7671356523mshf5fc94df33e09eep1dfeb2jsn2065788690cf"
+    });
 
 
-    // req.end(function (res) {
-    //     if (res.error) throw new Error(res.error);
+    req.end(function (res) {
+        if (res.error) throw new Error(res.error);
         
-    //     const latLng = {
-    //         lat: lat,
-    //         lng: lng
-    //     }
-    //     console.log(res.body);
-    //     response.send({
-    //         location: latLng,
-    //         restaurants: res.body
-    //     });
-    // });
+        const latLng = {
+            lat: lat,
+            lng: lng
+        }
+        console.log(res.body);
+        response.send({
+            location: latLng,
+            restaurants: res.body
+        });
+    });
 
             
-    const latLng = {
-        lat: lat,
-        lng: lng
-    }
-    response.send({
-        location: latLng,
-        restaurants: null
-    });
+    // const latLng = {
+    //     lat: lat,
+    //     lng: lng
+    // }
+    // response.send({
+    //     location: latLng,
+    //     restaurants: null
+    // });
     
 }
 
@@ -386,7 +386,7 @@ app.get('/auth/google/feast_club',
   passport.authenticate('google'),
   function(req, res) {
     // Successful authentication, redirect home.
-    res.status(301).redirect('http://localhost:3000/users/id:' + logInDataSendBack.id);
+    res.status(301).redirect('http://localhost:3000/mainPage');
 });
 
 app.get('/auth/facebook',
@@ -397,7 +397,7 @@ app.get('/auth/facebook/feast_club',
   passport.authenticate('facebook'),
   function(req, res) {
     // Successful authentication, redirect home.
-    res.status(301).redirect('http://localhost:3000/mainPage:');
+    res.status(301).redirect('http://localhost:3000/mainPage');
   });
 
 
