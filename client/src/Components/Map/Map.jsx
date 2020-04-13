@@ -9,13 +9,7 @@ import testRestaurants from "../../restaurants"
 import mapStyles from "../../mapStyles";
 import WindowInfo from "./WindowInfo"
 import "../../styles/Map.css"
-
-import { useGlobal,setGlobal } from 'reactn';
-
-
-
-
-
+import LinearProgress from '@material-ui/core/LinearProgress';
 
 
 function Map(){
@@ -28,8 +22,26 @@ function Map(){
         lat: 0,
         lng: 0
     });
+
+    const [loading, setLoading] = useState(false)
     
-    const [requestFlag, setRequestFlag] = useState(false)
+    const [requestFlag, setRequestFlag] = useState(false);
+
+    function getNearbyRestaurants(latLng){
+        setLoading(true);
+        axios.post("http://localhost:5000/nearbyrestaurants", latLng, {withCredentials: true})
+        .then((response) => {
+            console.log(response.data);
+            setRestaurants(response.data);
+            setLatLng(latLng);
+            setLoading(false);
+            console.log("finish loading!");
+        })
+        .catch(err => {
+            console.log(err);
+        })
+    }
+
     function MapSetUp(){
         
         const [selectedRestaurant, setSelectedRestaurant] = useState(null);
@@ -38,26 +50,19 @@ function Map(){
         const defaultMapOptions = {
             fullscreenControl: false,
             disableDefaultUI: true,
+            disableAutoPan: true,
             styles: mapStyles
         };
     
-        var count = 0
         if(latLng.lat === 0 && latLng.lng === 0 && !requestFlag){
             setRequestFlag(true);
-            axios.get("http://localhost:5000/nearbyrestaurants", {withCredentials: true})
-                .then((response) => {
-                    if(response.data.location != null){
-                        console.log(response.data);
-                        
-                        setLoading(false)
-                        setLatLng(response.data.location);
-                        setRestaurants(response.data.restaurants)
-                        
-                    } else setLoading(false)
-                })
-                .catch(err => {
-                    console.log(err);
-                })
+            navigator.geolocation.getCurrentPosition(function(position){
+                const latLng = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                }
+                getNearbyRestaurants(latLng);
+            });
         }
         return (
             <GoogleMap
@@ -65,9 +70,8 @@ function Map(){
             defaultCenter={{ lat: 0, lng: 0}}
             defaultOptions={defaultMapOptions}
             center={{lat: parseFloat(latLng.lat), lng: parseFloat(latLng.lng)}}>
-                {latLng.lat === 0 && latLng.lng === 0 && !loading
-                    ? <LocationInfoForm/>
-                    : <Marker
+                {latLng.lat != 0 && latLng.lng != 0 
+                    ? <Marker
                         key={0}
                         position={{
                             lat: parseFloat(latLng.lat),
@@ -81,7 +85,7 @@ function Map(){
                             scaledSize: new window.google.maps.Size(40, 40)
                         }}
                         />
-                    }
+                    : null}
                 {restaurants.data.map(restaurant => (
                     <Marker
                         key={restaurant.location_id}
@@ -130,19 +134,21 @@ function Map(){
     return(
         <div className="map-container row">
             <div clasName="map col-md-9 col-sm-12" style={{width: '75.5vw', height: '100vh'}}>
-            <WrappedMap
+            {loading ? <LinearProgress color="secondary" />
+            : <WrappedMap
                 googleMapURL=
                 {'https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places&key='}
                 loadingElement={<div style={{height: "100%"}}/>}
                 containerElement={<div style={{height: "100%"}}/>}
                 mapElement={<div style={{height: "100%"}}/>}
-            />
+            />}
             </div>
             
             <div className="window-info col-md-3">
                 <WindowInfo 
                     restaurantsCount={restaurants.data.length}
                     restaurants={restaurants}
+                    getNearbyRestaurants={getNearbyRestaurants}
                 />
             </div>
         </div>

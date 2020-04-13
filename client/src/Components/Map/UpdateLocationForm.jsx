@@ -15,25 +15,17 @@ import Geocode from "react-geocode";
 //import cities from "all-the-cities";
 import axios from 'axios';
 
-export default function LocationInfoForm(props) {
+export default function UpdateLocationForm(props) {
 
-  Geocode.setApiKey("");
+  Geocode.setApiKey("AIzaSyAEX7J8GBc__Ope0D6V1Ot8N7z-x1R0IPo");
 
   const [open, setOpen] = React.useState(true);
   const [address,setAddress] = useState("");
   const [saveActive, setSaveActive] = useState(false);
-  const [userLocationInfo, setUserLocationInfo] = useState({
-    lat: null,
-    lng: null,
-    city: "",
-    state: "",
-    country: ""
-  })
-
-  const searchOptions = {
-    types: ['(cities)']
-  }
-  
+  const [latLng, setLatLng] = useState({
+    lat: 0,
+    lng: 0
+});
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -48,37 +40,14 @@ export default function LocationInfoForm(props) {
   const handleSelect = async (value) => {
     const results = await geocodeByAddress(value);
     const latLng = await getLatLng(results[0]);
-    const addressComponents = results[0].address_components;
-    extractLocationInfo(addressComponents, latLng);
+    setLatLng(latLng);
+    //extractLocationInfo(addressComponents, latLng);
     
     setAddress(value);
     setSaveActive(true);
   }
 
-  function extractLocationInfo(addressComponents, latLng){
-    var locationInfo = {
-      lat: null,
-      lng: null,
-      city: "",
-      state: "",
-      country: ""
-    }
-    locationInfo.lat = latLng.lat;
-    locationInfo.lng = latLng.lng;
-    addressComponents.forEach(component => {
-      if(component.types.includes('locality')) 
-      locationInfo.city = component.long_name;
-      else if(component.types.includes('administrative_area_level_1') 
-              && component.long_name != locationInfo.city){
-        if(locationInfo.city === "") locationInfo.city = component.long_name;
-        else locationInfo.state = component.long_name;
-      }
-      else if(component.types.includes('country'))
-      locationInfo.country = component.long_name;
-    })
-    setUserLocationInfo(locationInfo);
-    setSaveActive(true);
-  }
+
 
   function handleChange(value){
     setAddress(value);
@@ -86,62 +55,41 @@ export default function LocationInfoForm(props) {
   }
 
   function handleSaveButton(){
-    axios.post("http://localhost:5000/savelocation", userLocationInfo, {withCredentials: true})
-        .then(response => {
-          console.log("then")
-          if(response.data){
-            setOpen(false);
-            window.location.reload();
-          } else {
-            alert("Fail to save your location! Try again!");
-          }
-        })
-        .catch(err => {
-          console.log(err);
-        })
+    console.log(latLng);
+    props.handleClose();
+    props.getNearbyRestaurants(latLng);
   }
 
   function getUserCurrentLocation(){
     if(navigator.geolocation){
       navigator.geolocation.getCurrentPosition(function(position){
-        const latLng = {
+        const latitudeLongitude = {
           lat: position.coords.latitude,
           lng: position.coords.longitude
         }
-
-        Geocode.fromLatLng(latLng.lat, latLng.lng).then(
-          response => {
-            const addressComponents = response.results[0].address_components;
-            console.log(addressComponents);
-            extractLocationInfo(addressComponents, latLng);
-          },
-          error => {
-            console.error(error);
-          }
-        );
+        setLatLng(latitudeLongitude);
+        props.handleClose();
+        props.getNearbyRestaurants(latitudeLongitude);
       })
     }
   }
 
   return (
     <div>
-      <Button variant="outlined" color="primary" onClick={handleClickOpen}>
-        Open form dialog
-      </Button>
-      <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title">
-        <DialogTitle id="form-dialog-title"><span style={{fontWeight: 'bold'}}>LOCATION ACCESS</span></DialogTitle>
+      <Dialog open={true} onClose={handleClose} aria-labelledby="form-dialog-title">
+        <DialogTitle id="form-dialog-title"><span style={{fontWeight: 'bold'}}>Change Location</span></DialogTitle>
         <DialogContent>
           <DialogContentText>
-            <span style={{fontWeight: 'bold'}}>In order to for Feast Club to work properly, we need your location information!</span>
+            <span style={{fontWeight: 'bold'}}>Change to your current location</span>
           </DialogContentText>
           <Button variant="contained" color="secondary" onClick={getUserCurrentLocation}>
-            Allow Feast Club to get your current location
+            Change
           </Button>
           <hr/>
           <DialogContentText>
-            <span style={{fontWeight: 'bold'}}>Or...just provide us the city you are in</span>
+            <span style={{fontWeight: 'bold'}}>Or, change to other locations</span>
           </DialogContentText>
-          <PlacesAutocomplete value={address} onChange={handleChange} onSelect={handleSelect} searchOptions={searchOptions}>
+          <PlacesAutocomplete value={address} onChange={handleChange} onSelect={handleSelect}>
             {({getInputProps, suggestions, getSuggestionItemProps, loading}) => (
               <div>
                 <TextField
@@ -170,7 +118,7 @@ export default function LocationInfoForm(props) {
           
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={props.handleClose} color="primary">
             <span style={{color: '#eb8242', fontWeight: 'bold'}}>Cancel</span>
           </Button>
           {saveActive 

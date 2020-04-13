@@ -307,21 +307,11 @@ function getNearbyRestaurantsByTripsAdvisor(lat,lng, response){
             lng: lng
         }
         console.log(res.body);
-        response.send({
-            location: latLng,
-            restaurants: res.body
-        });
+        response.send(res.body);
     });
 
             
-    // const latLng = {
-    //     lat: lat,
-    //     lng: lng
-    // }
-    // response.send({
-    //     location: latLng,
-    //     restaurants: null
-    // });
+    //response.send("response");
     
 }
 
@@ -343,7 +333,7 @@ async function sendLocalData(id, res){
         console.log("Try to get the user location");
         const table = await pool.query("SELECT latitude, longitude FROM user_locations WHERE user_id = $1", [id]);
         if(table.rows[0] != undefined){// The current logged in user has already provided location
-            getNearbyRestaurantsByTripsAdvisor(table.rows[0].latitude, table.rows[0].longitude, res)
+            getNearbyRestaurantsByTripsAdvisor(table.rows[0].latitude, table.rows[0].longitude, res);
         } else {// The current logged in user has not provided location
             console.log("The user has not provided any location info");
             res.send({
@@ -373,9 +363,10 @@ app.get("/", (req, res) => {
     } else res.send();
 });
 
-app.get('/nearbyrestaurants', function(req, res){
+app.post('/nearbyrestaurants', function(req, res){
+    console.log(req.body);
     if(req.isAuthenticated()){
-        sendLocalData(req.session.passport.user, res);
+        getNearbyRestaurantsByTripsAdvisor(req.body.lat, req.body.lng, res);
     }
 });
 

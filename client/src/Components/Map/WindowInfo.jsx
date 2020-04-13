@@ -9,17 +9,26 @@ import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { faCompass } from '@fortawesome/free-solid-svg-icons';
 import SearchBar from "./WindowInfoSearchBar"
 import InfoBox from "./InfoBox"
+import UpdateLocationForm from "./UpdateLocationForm"
 
 
 function WindowInfo(props){
 
   const [open, setOpen] = useState(false);
 
+  function openLocationDialog(){  
+    setOpen(true);
+  }
+
+  function closeLocationDialog(){
+    console.log("closed");
+    setOpen(false);
+  }
     return(
       <div>
         <FontAwesomeIcon className="window-info-icon" icon={faGlobeAsia}/>
         <FontAwesomeIcon className="window-info-icon" icon={faUser}/>
-        <FontAwesomeIcon id="compass" className="window-info-icon" icon={faCompass}/>
+        <FontAwesomeIcon id="compass" className="window-info-icon" icon={faCompass} onClick={openLocationDialog}/>
         <SearchBar/>
         <p className="window-info-title">Check out {props.restaurantsCount} restaurants near you!</p>
         {props.restaurants.data.map((restaurant) => (
@@ -35,7 +44,11 @@ function WindowInfo(props){
                   : ""} 
           rating={restaurant.rating}/>
         ))}
-        
+          {open && <UpdateLocationForm
+            open={open}
+            getNearbyRestaurants={props.getNearbyRestaurants}
+            handleClose={closeLocationDialog}
+          />}
       </div>
 
     );

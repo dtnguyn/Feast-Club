@@ -33,6 +33,10 @@ background: linear-gradient(90deg, rgba(255,235,155,1) 0%, rgba(246,218,99,1) 10
     float: right;
 }
 
+.window-info-icon:hover{
+    color: #e69563;
+}
+
 .input-searchBar-window-info[type=text] {
     width: 80%;   
     box-sizing: border-box;
