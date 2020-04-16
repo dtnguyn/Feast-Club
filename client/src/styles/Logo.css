@@ -1,0 +1,28 @@
+.logo-first-letter-big {
+    font-family: DancingScript-Bold;
+    font-size: 9rem;
+    display: inline;
+    color: #9d0b0b;
+}
+
+.logo-second-letter-big {
+    font-family: DancingScript-Bold;
+    font-size: 4.5rem;
+    color: #f6da63;
+    display: inline;
+}
+
+
+.logo-first-letter-small {
+    font-family: DancingScript-Bold;
+    font-size: 4.5rem;
+    display: inline;
+    color: #9d0b0b;
+}
+
+.logo-second-letter-small {
+    font-family: DancingScript-Bold;
+    font-size: 2rem;
+    color: #f6da63;
+    display: inline;
+}

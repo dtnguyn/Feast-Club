@@ -13,7 +13,7 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 
 
 function Map(){
-
+    const mapUrl = 'https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places&key=' + process.env.REACT_APP_GOOGLE_API_KEY;
     const [restaurants, setRestaurants] = useState({
         data: []
     })
@@ -32,7 +32,7 @@ function Map(){
         axios.post("http://localhost:5000/nearbyrestaurants", latLng, {withCredentials: true})
         .then((response) => {
             console.log(response.data);
-            setRestaurants(response.data);
+            setRestaurants(testRestaurants);
             setLatLng(latLng);
             setLoading(false);
             console.log("finish loading!");
@@ -136,8 +136,7 @@ function Map(){
             <div clasName="map col-md-9 col-sm-12" style={{width: '75.5vw', height: '100vh'}}>
             {loading ? <LinearProgress color="secondary" />
             : <WrappedMap
-                googleMapURL=
-                {'https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places&key='}
+                googleMapURL={mapUrl}
                 loadingElement={<div style={{height: "100%"}}/>}
                 containerElement={<div style={{height: "100%"}}/>}
                 mapElement={<div style={{height: "100%"}}/>}
@@ -149,6 +148,8 @@ function Map(){
                     restaurantsCount={restaurants.data.length}
                     restaurants={restaurants}
                     getNearbyRestaurants={getNearbyRestaurants}
+                    lat={latLng.lat}
+                    lng={latLng.lng}
                 />
             </div>
         </div>

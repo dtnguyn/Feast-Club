@@ -29,7 +29,7 @@ function WindowInfo(props){
         <FontAwesomeIcon className="window-info-icon" icon={faGlobeAsia}/>
         <FontAwesomeIcon className="window-info-icon" icon={faUser}/>
         <FontAwesomeIcon id="compass" className="window-info-icon" icon={faCompass} onClick={openLocationDialog}/>
-        <SearchBar/>
+        <SearchBar lat={props.lat} lng ={props.lng} />
         <p className="window-info-title">Check out {props.restaurantsCount} restaurants near you!</p>
         {props.restaurants.data.map((restaurant) => (
           <InfoBox 

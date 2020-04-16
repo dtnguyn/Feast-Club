@@ -5,6 +5,7 @@ import RegisterPage from "./Components/RegisterPage/RegisterPage"
 import SignInPage from "./Components/SignInPage/SignInPage"
 import MainPage from "./Components/MainPage/MainPage"
 import RegisterStatusPage from "./Components/RegisterPage/RegisterStatusPage";  
+import RestaurantInfoDetailPage from "./Components/RestaurantInfoDetailPage/RestaurantInfoDetailPage";
 
 import './styles/App.css';
 
@@ -14,11 +15,8 @@ import { faCompass } from "@fortawesome/free-solid-svg-icons";
 import { Hidden } from "@material-ui/core";
 
 
+
 function App(props) {
-
-  //const history = useHistory();
-  
-
   return (
     <Router style={{overflow: Hidden}}>
       <Route path="/" exact component={HomePage} />
@@ -26,6 +24,7 @@ function App(props) {
       <Route path="/register/status" component={RegisterStatusPage}/>
       <Route path="/signin" component={SignInPage} />
       <Route path="/mainPage" component={MainPage}/>
+      <Route path="/info" component={RestaurantInfoDetailPage}/>
       
     </Router>
   );

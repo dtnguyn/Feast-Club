@@ -1,0 +1,40 @@
+
+.restaurant-info-detail-page{
+    background-color: #fafafa;
+}
+
+
+.slide-images {
+    margin-top: 75px;
+    
+}
+
+.carousel-item {
+    padding-left: 15%;
+    padding-right: 15%;
+}
+
+
+.info-navbar {
+    background-color: #eb8242;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  height: 50px;
+  width: 50px;
+  background-image: none;
+}
+
+.carousel-control-next-icon:after
+{
+  content: '>';
+  font-size: 55px;
+  color: #eb8242;
+}
+
+.carousel-control-prev-icon:after {
+  content: '<';
+  font-size: 55px;
+  color: #eb8242;
+}

@@ -17,7 +17,7 @@ import axios from 'axios';
 
 export default function UpdateLocationForm(props) {
 
-  Geocode.setApiKey("AIzaSyAEX7J8GBc__Ope0D6V1Ot8N7z-x1R0IPo");
+  Geocode.setApiKey(process.env.REACT_APP_GOOGLE_API_KEY);
 
   const [open, setOpen] = React.useState(true);
   const [address,setAddress] = useState("");
@@ -97,7 +97,7 @@ export default function UpdateLocationForm(props) {
                   autoFocus
                   margin="dense"
                   id="name"
-                  label="Enter your city..."
+                  label="Change your location to..."
                   type="text"
                   fullWidth
                 ></TextField>

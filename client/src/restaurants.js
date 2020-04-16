@@ -272,15 +272,6 @@ export default {
             establishment_types: [Array]
           },
           {
-            location_id: '293925',
-            ad_position: 'inline2',
-            ad_size: '8X8',
-            doubleclick_zone: '',
-            detail: '0',
-            page_type: 'restaurants',
-            mob_ptype: 'app_restaurants'
-          },
-          {
             location_id: '15035791',
             name: 'MHC Cafe & Restaurant',
             latitude: '10.806197',
@@ -630,15 +621,6 @@ export default {
             cuisine: [Array],
             dietary_restrictions: [],
             establishment_types: [Array]
-          },
-          {
-            location_id: '293925',
-            ad_position: 'inline3',
-            ad_size: '8X8',
-            doubleclick_zone: '',
-            detail: '0',
-            page_type: 'restaurants',
-            mob_ptype: 'app_restaurants'
           },
           {
             location_id: '15354081',

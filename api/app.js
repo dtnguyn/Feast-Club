@@ -16,7 +16,7 @@ const nodemailer = require("nodemailer");
 const superagent = require('superagent');
 const cities = require('all-the-cities');
 const unirest = require("unirest");
-
+const util = require('util');
 
 //To hast password before save in database
 const bcrypt = require('bcrypt');
@@ -281,39 +281,102 @@ function getNearbyRestaurantsByGoogle(lat, lng, response){
 }
 
 function getNearbyRestaurantsByTripsAdvisor(lat,lng, response){
-    const req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
+    // const req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
 
-    req.query({
-        "limit": "30",
-        "currency": "USD",
-        "distance": "2",
-        "lunit": "km",
-        "lang": "en_US",
-        "latitude": lat,
-        "longitude": lng
-    });
+    // req.query({
+    //     "limit": "30",
+    //     "currency": "USD",
+    //     "distance": "2",
+    //     "lunit": "km",
+    //     "lang": "en_US",
+    //     "latitude": lat,
+    //     "longitude": lng
+    // });
 
-    req.headers({
-        "x-rapidapi-host": "tripadvisor1.p.rapidapi.com",
-        "x-rapidapi-key": "7671356523mshf5fc94df33e09eep1dfeb2jsn2065788690cf"
-    });
+    // req.headers({
+    //     "x-rapidapi-host": "tripadvisor1.p.rapidapi.com",
+    //     "x-rapidapi-key": process.env.TRIP_ADVISOR_API_KEY
+    // });
 
 
-    req.end(function (res) {
-        if (res.error) throw new Error(res.error);
+    // req.end(function (res) {
+    //     if (res.error) throw new Error(res.error);
         
-        const latLng = {
-            lat: lat,
-            lng: lng
-        }
-        console.log(res.body);
-        response.send(res.body);
-    });
+    //     const latLng = {
+    //         lat: lat,
+    //         lng: lng
+    //     }
+    //     console.log(res.body);
+    //     response.send(res.body);
+    // });
 
             
-    //response.send("response");
+    response.send("response");
     
 }
+
+// function getSpecificRestaurant(lat, lng, response){
+//     // console.log("Finding restaurants....");
+//     // const req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
+
+//     // req.query({
+//     //     "limit": "1",
+//     //     "currency": "USD",
+//     //     "distance": "2",
+//     //     "lunit": "km",
+//     //     "lang": "en_US",
+//     //     "latitude": lat,
+//     //     "longitude": lng
+//     // });
+
+//     // req.headers({
+//     //     "x-rapidapi-host": "tripadvisor1.p.rapidapi.com",
+//     //     "x-rapidapi-key": process.env.TRIP_ADVISOR_API_KEY
+//     // });
+
+
+//     // req.end(function (res) {
+//     //     if (res.error) throw new Error(res.error);
+//     //     const latLng = {
+//     //         lat: lat,
+//     //         lng: lng
+//     //     }
+//     //     console.log("Found it !!!");
+//     //     console.log(res.body);
+//     //     response.send(res.body);
+//     // });
+//     const restaurant = {
+//         data: ['restaurant']
+//     }
+//     response.send(restaurant);
+// }
+
+function getSpecificRestaurant(id, lat, lng, response){
+    // console.log("Finding restaurants.... " + id);
+    // const input = "205 Phan Xich Long Ward 2, Phu Nhuan Dist., Ho Chi Minh City Vietnam"
+
+    // const req = unirest("GET", "https://maps.googleapis.com/maps/api/place/details/json?place_id=" + id + "&fields=name,rating,formatted_phone_number,icon,photo,formatted_address,opening_hours,website,price_level,rating,review,user_ratings_total&key=" + process.env.GOOGLE_API_KEY);
+
+
+    // req.end(function (res) {
+    //     if (res.error) throw new Error(res.error);
+    //     console.log(util.inspect(res.body, {showHidden: false, depth: null}))
+    //     // const latLng = {
+    //     //     lat: lat,
+    //     //     lng: lng
+    //     // }
+    //     // console.log("Found it !!!");
+    //     // console.log(res.body);
+    //     response.send(res.body);
+
+    // });
+    const restaurant = {
+        result: "This is the result of the API call"
+    }
+    response.send(restaurant);
+}
+
+
 
 function addLocation(id, lat, lng, city, state, country){
     try{
@@ -363,12 +426,6 @@ app.get("/", (req, res) => {
     } else res.send();
 });
 
-app.post('/nearbyrestaurants', function(req, res){
-    console.log(req.body);
-    if(req.isAuthenticated()){
-        getNearbyRestaurantsByTripsAdvisor(req.body.lat, req.body.lng, res);
-    }
-});
 
 app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -443,6 +500,19 @@ app.post('/savelocation', (req,res) => {
     const country = req.body.country;
     res.send(addLocation(id, lat, lng, city, state, country));
 })
+
+app.post('/nearbyrestaurants', function(req, res){
+    console.log(req.body);
+    if(req.isAuthenticated()){
+        getNearbyRestaurantsByTripsAdvisor(req.body.lat, req.body.lng, res);
+    }
+});
+
+app.post('/findrestaurant', function(req, res){
+    if(req.isAuthenticated()){
+        getSpecificRestaurant(req.body.id, req.body.latLng.lat, req.body.latLng.lng, res)
+    }
+});
 
 
 app.listen(port, () => console.log(`Feast Club is running on port ${port}!`));
