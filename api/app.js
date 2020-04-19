@@ -17,6 +17,7 @@ const superagent = require('superagent');
 const cities = require('all-the-cities');
 const unirest = require("unirest");
 const util = require('util');
+const testRestaurant = require('./foundRestaurant');
 
 //To hast password before save in database
 const bcrypt = require('bcrypt');
@@ -352,30 +353,60 @@ function getNearbyRestaurantsByTripsAdvisor(lat,lng, response){
 // }
 
 function getSpecificRestaurant(id, lat, lng, response){
-    // console.log("Finding restaurants.... " + id);
-    // const input = "205 Phan Xich Long Ward 2, Phu Nhuan Dist., Ho Chi Minh City Vietnam"
+    console.log("Finding restaurants.... " + id);
+    const input = "205 Phan Xich Long Ward 2, Phu Nhuan Dist., Ho Chi Minh City Vietnam"
 
-    // const req = unirest("GET", "https://maps.googleapis.com/maps/api/place/details/json?place_id=" + id + "&fields=name,rating,formatted_phone_number,icon,photo,formatted_address,opening_hours,website,price_level,rating,review,user_ratings_total&key=" + process.env.GOOGLE_API_KEY);
+    const req = unirest("GET", "https://maps.googleapis.com/maps/api/place/details/json?place_id=" + id + "&fields=name,rating,formatted_phone_number,icon,photo,formatted_address,opening_hours,website,price_level,rating,review,user_ratings_total&key=" + process.env.GOOGLE_API_KEY);
 
 
-    // req.end(function (res) {
-    //     if (res.error) throw new Error(res.error);
-    //     console.log(util.inspect(res.body, {showHidden: false, depth: null}))
-    //     // const latLng = {
-    //     //     lat: lat,
-    //     //     lng: lng
-    //     // }
-    //     // console.log("Found it !!!");
-    //     // console.log(res.body);
-    //     response.send(res.body);
+    req.end(function (res) {
+        if (res.error) throw new Error(res.error);
+        console.log(util.inspect(res.body, {showHidden: false, depth: null}))
+        // const latLng = {
+        //     lat: lat,
+        //     lng: lng
+        // }
+        // console.log("Found it !!!");
+        // console.log(res.body);
+        response.send(res.body);
 
-    // });
-    const restaurant = {
-        result: "This is the result of the API call"
-    }
-    response.send(restaurant);
+    });
+
+    //getRestaurantPhotos(testRestaurant.result.photos, response)
+    
 }
 
+function getRestaurantPhotos(photos, response){
+    
+    let responsePhotos = [];
+    count = 0;
+    requests = photos.map(({photo_reference}) => new Promise((resolve, reject) => {
+        var url = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo_reference}&key=${process.env.GOOGLE_API_KEY}`;
+
+        superagent.get(url).end((err, res) => {
+            if (err) 
+                return console.log(err); 
+            else {
+                count++;
+                console.log(`getting ${count} photo`);
+                responsePhotos.push(res.body)
+                resolve();
+            }
+        })
+    }))
+   
+    
+
+    Promise.all(requests).then(() => {
+        const restaurant = {
+            result: "This is the result of the API call",
+            photos: responsePhotos
+        }
+        response.send(restaurant);
+      });
+    
+
+}
 
 
 function addLocation(id, lat, lng, city, state, country){

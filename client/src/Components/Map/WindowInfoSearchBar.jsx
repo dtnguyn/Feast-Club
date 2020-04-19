@@ -13,9 +13,7 @@ import axios from "axios";
 function SearchBar(props){
 
     const [invalidSearch, setInvalidSearch] = useState(false);
-    const [foundRestaurant, setFoundRestaurant] = useState({
-        data: []
-    })
+    const [foundRestaurant, setFoundRestaurant] = useState({});
     const history = useHistory();
 
     const searchOptions={
@@ -33,8 +31,8 @@ function SearchBar(props){
     async function handleSelect(value){
         const results = await geocodeByAddress(value);
         const latLng = await getLatLng(results[0]);
-        console.log(latLng);
-        console.log(results);
+
+
         checkRestaurant(results[0], latLng);
         setAddress(value);
     }
@@ -69,7 +67,12 @@ function SearchBar(props){
             if(result != undefined){
                 setFoundRestaurant(testRestaurant);
                 console.log("Restaurant is valid");
-                history.push("/info");
+                history.push("/info", {
+                    restaurant: result, 
+                    origin: {lat: props.lat, lng: props.lng}, 
+                    destination: {lat: info.latLng.lat, lng: info.latLng.lng}
+                    
+                });
             } else {
                 console.log("Restaurant is valid");
                 setInvalidSearch(true);

@@ -6,6 +6,7 @@
 /* Sign in Box */
 
 .div-sign-in{
+    height: 100vh;
     background-color: #eb8242;
     text-align: center; 
     overflow: hidden;

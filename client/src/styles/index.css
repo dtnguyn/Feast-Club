@@ -23,12 +23,12 @@ code {
 }
 
 @font-face {
-  font-family: 'Monserrat-Medium';
+  font-family: 'Montserrat-Medium';
   src: local('FiraSans'), url(../fonts/Montserrat-Medium.ttf) format('truetype');
 }
 
 @font-face {
-  font-family: 'Montserrat-Medium';
+  font-family: 'Montserrat-Bold';
   src: local('FiraSans'), url(../fonts/Montserrat-Bold.ttf) format('truetype');
 }
 
