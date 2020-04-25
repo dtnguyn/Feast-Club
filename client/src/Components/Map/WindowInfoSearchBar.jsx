@@ -13,7 +13,6 @@ import axios from "axios";
 function SearchBar(props){
 
     const [invalidSearch, setInvalidSearch] = useState(false);
-    const [foundRestaurant, setFoundRestaurant] = useState({});
     const history = useHistory();
 
     const searchOptions={
@@ -40,20 +39,16 @@ function SearchBar(props){
     function handleChange(value){
         setAddress(value);
     }
-
-    function handleClose(){
-        setInvalidSearch(false);
-    }
     
     function checkRestaurant(restaurant, latLng){
         if(!restaurant.types.includes('restaurant')){
-            setInvalidSearch(true)
+            props.setInvalidSearch(true)
         } else {
             const info = {
                 id : restaurant.place_id,
                 latLng: latLng
             }
-            findSpecificRestaurant(info);
+            props.findSpecificRestaurant(info);
         }
     }
 
@@ -65,13 +60,11 @@ function SearchBar(props){
             console.log(response.data);
             
             if(result != undefined){
-                setFoundRestaurant(testRestaurant);
                 console.log("Restaurant is valid");
                 history.push("/info", {
-                    restaurant: result, 
+                    restaurant: result,
                     origin: {lat: props.lat, lng: props.lng}, 
                     destination: {lat: info.latLng.lat, lng: info.latLng.lng}
-                    
                 });
             } else {
                 console.log("Restaurant is valid");
@@ -108,15 +101,7 @@ function SearchBar(props){
                 </div>
                 )}
             </PlacesAutocomplete>
-            {invalidSearch 
-            ? <AlertDialog
-                open={invalidSearch}
-                close={handleClose}
-                alertTitle="Cannot find Restaurants!"
-                alertMessage="Sorry! We are unable to find the restaurants that you requested. Please try again!"
-                
-              />
-            : null}
+            
         </div>
         
         

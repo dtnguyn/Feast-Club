@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { MDBNavbar, MDBNavbarBrand, MDBNavbarNav, MDBNavItem, MDBNavLink, MDBCollapse, MDBContainer,
-  MDBHamburgerToggler } from 'mdbreact';
+import {useHistory} from 'react-router-dom';
 import '../../styles/Map.css'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,10 +8,16 @@ import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { faCompass } from '@fortawesome/free-solid-svg-icons';
 import SearchBar from "./WindowInfoSearchBar"
 import InfoBox from "./InfoBox"
-import UpdateLocationForm from "./UpdateLocationForm"
+import UpdateLocationForm from "./UpdateLocationForm";
+import AlertDialog from '../SharedComponents/AlertDialog'
+import axios from 'axios';
 
 
 function WindowInfo(props){
+
+  const history = useHistory();
+
+  const [invalidSearch, setInvalidSearch] = useState(false);
 
   const [open, setOpen] = useState(false);
 
@@ -24,15 +29,57 @@ function WindowInfo(props){
     console.log("closed");
     setOpen(false);
   }
+
+  function findSpecificRestaurant(info){
+      console.log(info);
+      axios.get("http://localhost:5000/findrestaurant", {
+        withCredentials: true,
+        params: {
+          id: info.id,
+          lat: info.latLng.lat,
+          lng: info.latLng.lng
+        }
+      })
+      .then((response) => {
+          console.log("Found it!!!");
+          const result = response.data.result;
+          console.log(response.data);
+          
+          if(result != undefined){
+              console.log("Restaurant is valid");
+              history.push("/info", {
+                  restaurant: result,
+                  origin: {lat: props.lat, lng: props.lng}, 
+                  destination: {lat: info.latLng.lat, lng: info.latLng.lng}
+                  
+              });
+          } else {
+              console.log("Restaurant is valid");
+              setInvalidSearch(true);
+          }
+      })
+      .catch(err => {
+          console.log(err);
+      })
+  }
+
     return(
       <div>
         <FontAwesomeIcon className="window-info-icon" icon={faGlobeAsia}/>
         <FontAwesomeIcon className="window-info-icon" icon={faUser}/>
         <FontAwesomeIcon id="compass" className="window-info-icon" icon={faCompass} onClick={openLocationDialog}/>
-        <SearchBar lat={props.lat} lng ={props.lng} />
-        <p className="window-info-title">Check out {props.restaurantsCount} restaurants near you!</p>
+        <SearchBar 
+          lat={props.lat} 
+          lng ={props.lng} 
+          findSpecificRestaurant={findSpecificRestaurant}
+          setInvalidSearch={setInvalidSearch}
+        />
+        <p className="window-info-title">Check out {props.restaurants.data.length} restaurants near you!</p>
         {props.restaurants.data.map((restaurant) => (
           <InfoBox 
+          findSpecificRestaurant={findSpecificRestaurant}
+          lat={restaurant.latitude}
+          lng={restaurant.longitude}
           restaurantName={restaurant.name}
           priceLevel={restaurant.price_level}
           address={restaurant.address} 
@@ -47,8 +94,16 @@ function WindowInfo(props){
           {open && <UpdateLocationForm
             open={open}
             getNearbyRestaurants={props.getNearbyRestaurants}
-            handleClose={closeLocationDialog}
           />}
+        {invalidSearch 
+          ? <AlertDialog
+              open={invalidSearch}
+              close={closeLocationDialog}
+              alertTitle="Cannot find Restaurants!"
+              alertMessage="Sorry! We are unable to find the restaurants that you requested. Please try again!"
+              
+            />
+          : null}
       </div>
 
     );

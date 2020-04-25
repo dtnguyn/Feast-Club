@@ -1,5 +1,5 @@
 import {  GoogleMap, withScriptjs, withGoogleMap, Marker, DirectionsRenderer } from "react-google-maps";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import axios from "axios";
 
@@ -10,6 +10,8 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 
 function MapDirection(props){
     const mapUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${props.origin}&destination=${props.destination}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`;
+
+    console.log(props.origin, props.destination);
 
     const directionsService = new window.google.maps.DirectionsService();
 
@@ -25,26 +27,30 @@ function MapDirection(props){
         styles: mapStyles
     };
 
-    directionsService.route(
-        {
-          origin: props.origin,
-          destination: props.destination,
-          travelMode: window.google.maps.TravelMode.DRIVING
-        },
-        (result, status) => {
-          if (status === window.google.maps.DirectionsStatus.OK) {
-            setDirections(result);
-          } else {
-            console.error(`error fetching directions ${result}`);
-          }
-          console.log(props.origin);
-          console.log(props.destination);
-          console.log("directions: " + directions);
-        }
-    );
+    
+
+    useEffect(() => {
+        directionsService.route(
+            {
+              origin: props.origin,
+              destination: props.destination,
+              travelMode: window.google.maps.TravelMode.DRIVING
+            },
+            (result, status) => {
+              if (status === window.google.maps.DirectionsStatus.OK) {
+                console.log(result);
+                setDirections(result);
+              } else {
+                console.error(`error fetching directions ${result}`);
+              }
+              console.log(props.origin);
+              console.log(props.destination);
+              console.log("directions: " + directions);
+            }
+        );
+    }, []);
 
     function MapSetUp(){
-        
 
         return (
             <GoogleMap

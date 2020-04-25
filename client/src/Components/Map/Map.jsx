@@ -1,11 +1,8 @@
 import {  GoogleMap, withScriptjs, withGoogleMap, Marker, InfoWindow } from "react-google-maps";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-import LocationInfoForm from './LocationInfoForm'
 import axios from "axios";
-import Loader from 'react-loader-spinner';
 
-import testRestaurants from "../../restaurants"
 import mapStyles from "../../mapStyles";
 import WindowInfo from "./WindowInfo"
 import "../../styles/Map.css"
@@ -25,17 +22,21 @@ function Map(){
 
     const [loading, setLoading] = useState(false)
     
-    const [requestFlag, setRequestFlag] = useState(false);
+
 
     function getNearbyRestaurants(latLng){
         setLoading(true);
-        axios.post("http://localhost:5000/nearbyrestaurants", latLng, {withCredentials: true})
+        axios.get("http://localhost:5000/nearbyrestaurants", {
+            withCredentials: true,
+            params: {
+                latLng: latLng
+            }
+        })
         .then((response) => {
             console.log(response.data);
-            setRestaurants(testRestaurants);
+            setRestaurants(response.data);
             setLatLng(latLng);
             setLoading(false);
-            console.log("finish loading!");
         })
         .catch(err => {
             console.log(err);
@@ -45,25 +46,27 @@ function Map(){
     function MapSetUp(){
         
         const [selectedRestaurant, setSelectedRestaurant] = useState(null);
-        const [loading, setLoading] = useState(true)
-    
+
         const defaultMapOptions = {
             fullscreenControl: false,
             disableDefaultUI: true,
             disableAutoPan: true,
             styles: mapStyles
         };
-    
-        if(latLng.lat === 0 && latLng.lng === 0 && !requestFlag){
-            setRequestFlag(true);
-            navigator.geolocation.getCurrentPosition(function(position){
-                const latLng = {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude
-                }
-                getNearbyRestaurants(latLng);
-            });
-        }
+
+
+        useEffect(() => {
+            if(latLng.lat === 0 && latLng.lng === 0){
+                navigator.geolocation.getCurrentPosition(function(position){
+                    const latLng = {
+                      lat: position.coords.latitude,
+                      lng: position.coords.longitude
+                    }
+                    getNearbyRestaurants(latLng);
+                });
+            }
+        },[]); 
+
         return (
             <GoogleMap
             defaultZoom={16}
@@ -130,7 +133,10 @@ function Map(){
     
     const WrappedMap = withScriptjs(withGoogleMap(MapSetUp))
 
-    
+    if(!restaurants){
+        return null;
+    }
+
     return(
         <div className="map-container row">
             <div clasName="map col-md-9 col-sm-12" style={{width: '75.5vw', height: '100vh'}}>
@@ -145,7 +151,6 @@ function Map(){
             
             <div className="window-info col-md-3">
                 <WindowInfo 
-                    restaurantsCount={restaurants.data.length}
                     restaurants={restaurants}
                     getNearbyRestaurants={getNearbyRestaurants}
                     lat={latLng.lat}

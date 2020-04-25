@@ -7,7 +7,8 @@ import axios from 'axios'
 import ImageSlide from './ImageSlide';
 import InfoNavbar from './InfoNavbar'
 import MapDirection from './MapDirection'
-import restaurants from '../../restaurants';
+import ReviewCard from './ReviewCard'
+
 
 function RestaurantInfoDetailPage(props){   
     const restaurant = props.location.state.restaurant;
@@ -61,6 +62,10 @@ function RestaurantInfoDetailPage(props){
         <div className="restaurant-info-detail-page">
             <InfoNavbar/>
             <h1 className="restaurant-name">{restaurant.name}</h1>
+            {restaurant.opening_hours.open_now 
+                ? <img className="restaurant-status-icon" src="/open_icon.svg"/> 
+                : <img className="restaurant-status-icon" src="/close_icon.svg"/>}
+            
             <div className="row">
                 <div className="col-md-4 col-sm-12 info-category">
                     <h4 className="info-category-title">Price & Rating</h4>
@@ -111,6 +116,21 @@ function RestaurantInfoDetailPage(props){
                 </div>
             </div>
             
+            <div className="info-category">
+                <h4 className="info-category-title">Reviews from Google</h4>
+                {restaurant.reviews.map(review => {
+                    return(
+                        <ReviewCard 
+                            author={review.author_name}
+                            rating={review.rating}
+                            img={review.profile_photo_url}
+                            content={review.text}
+                        />
+                    );
+                    
+                })}
+                
+            </div>
         </div>
     );
 }

@@ -8,19 +8,21 @@ function ImageSlide(props) {
     return(
         <div>
             <h4 className="info-category-title">Photos</h4>
-            <Carousel className="slide-images">
+            <Carousel indicators={false} className="slide-images">
                 {props.photos.map(({photo_reference}) => {
                     return (
-                        <Carousel.Item className="carousel-item">
+                        <Carousel.Item >
                             <img 
-                            className="d-block w-100 carousel-img"
+                            className=" d-block w-100  carousel-item"
                             src={`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo_reference}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`}
                             alt="First slide"
-                            style={{width: '100vw', height: '75vh'}}
+                        
                             />
                         </Carousel.Item>
+                        
                     );
                 })}
+
                 
             </Carousel>
         </div>
