@@ -1,47 +1,64 @@
 import {  GoogleMap, withScriptjs, withGoogleMap, Marker, InfoWindow } from "react-google-maps";
 import React, { useState, useEffect } from "react";
-
 import axios from "axios";
-
 import mapStyles from "../../mapStyles";
 import WindowInfo from "./WindowInfo"
 import "../../styles/Map.css"
 import LinearProgress from '@material-ui/core/LinearProgress';
+import { updateCurrentLocation } from "../../actions";
+import { useSelector, useDispatch } from "react-redux"
+import getCityAndCountry from "../../Utilities/getCityAndCountry";
 
-
-function Map(){
+function MainPageContent(){
     const mapUrl = 'https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=geometry,drawing,places&key=' + process.env.REACT_APP_GOOGLE_API_KEY;
     const [restaurants, setRestaurants] = useState({
         data: []
     })
 
-    const [latLng, setLatLng] = useState({
-        lat: 0,
-        lng: 0
-    });
+    const dispatch = useDispatch();
+    const global_location = useSelector(state => state.userLocation);
+    
 
     const [loading, setLoading] = useState(false)
     
 
 
     function getNearbyRestaurants(latLng){
+        console.log("Check latLng: " + latLng.lat);
+        console.log("Check latLng: " + latLng.lng);
         setLoading(true);
         axios.get("http://localhost:5000/nearbyrestaurants", {
             withCredentials: true,
             params: {
-                latLng: latLng
+                lat: latLng.lat,
+                lng: latLng.lng
             }
         })
         .then((response) => {
             console.log(response.data);
             setRestaurants(response.data);
-            setLatLng(latLng);
             setLoading(false);
         })
         .catch(err => {
             console.log(err);
         })
     }
+
+
+    if(navigator.geolocation && global_location.latLng.lat == null){
+        navigator.geolocation.getCurrentPosition(function(position){
+            getCityAndCountry(position.coords.latitude, position.coords.longitude,  (location) => {dispatch(updateCurrentLocation(location))});  
+        });
+    }
+
+    useEffect(() => {
+        if(global_location.latLng.lat != null){
+            getNearbyRestaurants(global_location.latLng);
+        }
+        
+    },[global_location]); 
+
+    
 
     function MapSetUp(){
         
@@ -54,31 +71,18 @@ function Map(){
             styles: mapStyles
         };
 
-
-        useEffect(() => {
-            if(latLng.lat === 0 && latLng.lng === 0){
-                navigator.geolocation.getCurrentPosition(function(position){
-                    const latLng = {
-                      lat: position.coords.latitude,
-                      lng: position.coords.longitude
-                    }
-                    getNearbyRestaurants(latLng);
-                });
-            }
-        },[]); 
-
         return (
             <GoogleMap
             defaultZoom={16}
             defaultCenter={{ lat: 0, lng: 0}}
             defaultOptions={defaultMapOptions}
-            center={{lat: parseFloat(latLng.lat), lng: parseFloat(latLng.lng)}}>
-                {latLng.lat != 0 && latLng.lng != 0 
+            center={{lat: parseFloat(global_location.latLng.lat), lng: parseFloat(global_location.latLng.lng)}}>
+                {global_location.latLng.lat != undefined
                     ? <Marker
                         key={0}
                         position={{
-                            lat: parseFloat(latLng.lat),
-                            lng: parseFloat(latLng.lng)
+                            lat: parseFloat(global_location.latLng.lat),
+                            lng: parseFloat(global_location.latLng.lng)
                         }}
                         onClick={() =>  {
                             
@@ -153,8 +157,8 @@ function Map(){
                 <WindowInfo 
                     restaurants={restaurants}
                     getNearbyRestaurants={getNearbyRestaurants}
-                    lat={latLng.lat}
-                    lng={latLng.lng}
+                    startLoading={() => setLoading(true)}
+                    stopLoading={() => setLoading(false)}
                 />
             </div>
         </div>
@@ -162,4 +166,4 @@ function Map(){
     )
 }
 
-export default Map;
+export default MainPageContent;

@@ -6,6 +6,7 @@ import SignInPage from "./Components/SignInPage/SignInPage"
 import MainPage from "./Components/MainPage/MainPage"
 import RegisterStatusPage from "./Components/RegisterPage/RegisterStatusPage";  
 import RestaurantInfoDetailPage from "./Components/RestaurantInfoDetailPage/RestaurantInfoDetailPage";
+import ExplorePage from "./Components/ExplorePage/ExplorePage"
 
 import './styles/App.css';
 
@@ -13,6 +14,7 @@ import axios from "axios";
 import { BrowserRouter as Router, Route, Link , useHistory} from "react-router-dom";
 import { faCompass } from "@fortawesome/free-solid-svg-icons";
 import { Hidden } from "@material-ui/core";
+
 
 
 
@@ -25,7 +27,7 @@ function App(props) {
       <Route path="/signin" component={SignInPage} />
       <Route path="/mainPage" component={MainPage}/>
       <Route path="/info" component={RestaurantInfoDetailPage}/>
-      
+      <Route path="/explore" component={ExplorePage}/>
     </Router>
   );
 }

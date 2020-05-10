@@ -11,9 +11,12 @@ import PlacesAutocomplete, {
   getLatLng,
 } from 'react-places-autocomplete';
 import Geocode from "react-geocode";
+import { updateCurrentLocation } from "../../actions";
+import { useSelector, useDispatch } from "react-redux"
 
 //import cities from "all-the-cities";
 import axios from 'axios';
+import getCityAndCountry from '../../Utilities/getCityAndCountry';
 
 export default function UpdateLocationForm(props) {
 
@@ -25,7 +28,10 @@ export default function UpdateLocationForm(props) {
   const [latLng, setLatLng] = useState({
     lat: 0,
     lng: 0
-});
+  });
+
+  const dispatch = useDispatch();
+  const global_location = useSelector(state => state.userLocation);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -40,9 +46,9 @@ export default function UpdateLocationForm(props) {
   const handleSelect = async (value) => {
     const results = await geocodeByAddress(value);
     const latLng = await getLatLng(results[0]);
-    setLatLng(latLng);
-    //extractLocationInfo(addressComponents, latLng);
     
+    setLatLng(latLng);
+
     setAddress(value);
     setSaveActive(true);
   }
@@ -55,28 +61,24 @@ export default function UpdateLocationForm(props) {
   }
 
   function handleSaveButton(){
-    console.log(latLng);
-    props.handleClose();
-    props.getNearbyRestaurants(latLng);
+    getCityAndCountry(latLng.lat, latLng.lng, (location) => {dispatch(updateCurrentLocation(location))});
+    props.close();
+    
   }
 
   function getUserCurrentLocation(){
     if(navigator.geolocation){
       navigator.geolocation.getCurrentPosition(function(position){
-        const latitudeLongitude = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        }
-        setLatLng(latitudeLongitude);
-        props.handleClose();
-        props.getNearbyRestaurants(latitudeLongitude);
-      })
+        getCityAndCountry(position.coords.latitude, position.coords.longitude, (location) => {dispatch(updateCurrentLocation(location))});
+        // if(global_location.latLng.lat != null) props.getNearbyRestaurants(global_location.latLng)
+        props.close();
+      });
     }
   }
 
   return (
     <div>
-      <Dialog open={true} onClose={handleClose} aria-labelledby="form-dialog-title">
+      <Dialog open={true} onClose={props.close} aria-labelledby="form-dialog-title">
         <DialogTitle id="form-dialog-title"><span style={{fontWeight: 'bold'}}>Change Location</span></DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -118,7 +120,7 @@ export default function UpdateLocationForm(props) {
           
         </DialogContent>
         <DialogActions>
-          <Button onClick={props.handleClose} color="primary">
+          <Button onClick={props.close} color="primary">
             <span style={{color: '#eb8242', fontWeight: 'bold'}}>Cancel</span>
           </Button>
           {saveActive 

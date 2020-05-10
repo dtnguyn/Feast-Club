@@ -5,7 +5,7 @@ import StarRatings from 'react-star-ratings';
 import axios from 'axios'
 
 import ImageSlide from './ImageSlide';
-import InfoNavbar from './InfoNavbar'
+import InfoNavbar from '../SharedComponents/InfoNavbar'
 import MapDirection from './MapDirection'
 import ReviewCard from './ReviewCard'
 

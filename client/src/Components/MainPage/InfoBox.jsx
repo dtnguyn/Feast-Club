@@ -7,6 +7,7 @@ import '../../styles/Map.css'
 
 function InfoBox(props){
     function getDetail() {
+      props.startLoading();
       axios.get("http://localhost:5000/findrestaurantID", {
         withCredentials: true,
         params: {

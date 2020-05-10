@@ -13,9 +13,9 @@ function ImageSlide(props) {
                     return (
                         <Carousel.Item >
                             <img 
-                            className=" d-block w-100  carousel-item"
-                            src={`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo_reference}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`}
-                            alt="First slide"
+                                className=" d-block w-100  carousel-item"
+                                src={`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo_reference}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`}
+                                alt="First slide"
                         
                             />
                         </Carousel.Item>

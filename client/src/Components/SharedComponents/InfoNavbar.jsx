@@ -2,8 +2,7 @@ import React from 'react';
 
 import  '../../styles/RestaurantInfoDetail.css';
 import {Navbar, Nav} from 'react-bootstrap';
-import InfoBox from '../Map/InfoBox';
-import Logo from '../SharedComponents/LogoSmall'
+import Logo from './LogoSmall'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobeAsia } from '@fortawesome/free-solid-svg-icons';
 import { faUser } from '@fortawesome/free-solid-svg-icons';

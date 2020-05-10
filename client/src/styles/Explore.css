@@ -1,0 +1,16 @@
+.explore-page {
+    text-align: center;
+}
+
+.city-img {
+    width: 100vw;
+    height: 40vh;
+    object-fit: cover;
+}
+
+.explore-title {
+    font-family: BalooBhai-Regular;
+    margin-top: 50px;
+    font-size: 2.5rem;
+    color: #eb8242;
+}

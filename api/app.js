@@ -284,7 +284,7 @@ function getNearbyRestaurantsByGoogle(lat, lng, response){
 }
 
 function getNearbyRestaurantsByTripsAdvisor(lat,lng, response){
-    // const req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
+    // var req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
 
     // req.query({
     //     "limit": "30",
@@ -295,25 +295,18 @@ function getNearbyRestaurantsByTripsAdvisor(lat,lng, response){
     //     "latitude": lat,
     //     "longitude": lng
     // });
-
+    
     // req.headers({
     //     "x-rapidapi-host": "tripadvisor1.p.rapidapi.com",
     //     "x-rapidapi-key": process.env.TRIP_ADVISOR_API_KEY
     // });
-
-
+    
+    
     // req.end(function (res) {
     //     if (res.error) throw new Error(res.error);
-        
-    //     const latLng = {
-    //         lat: lat,
-    //         lng: lng
-    //     }
-    //     console.log(res.body);
     //     response.send(res.body);
     // });
-
-            
+     
     response.send(nearbyrestaurants);
     
 }
@@ -346,6 +339,22 @@ function getRestaurantID(textInput, lat, lng, response){
     });
 }
 
+function getImageForCity(city, response){
+    const url = `https://pixabay.com/api/?key=${process.env.PIXABAY_API_KEY}&q=${city}&image_type=photo&orientation=horizontal&min_width=1000`
+    const req = unirest("GET", "https://pixabay.com/api/");
+    req.query({
+        "key": process.env.PIXABAY_API_KEY,
+        "q": city,
+        "image_type": "photo",
+        "orientation": "horizontal",
+        "min_width": 1000
+    });
+
+    req.end(function (res) {
+        if (res.error) throw new Error(res.error);
+        response.send(res.body)
+    });
+}
 
 function addLocation(id, lat, lng, city, state, country){
     try{
@@ -359,6 +368,8 @@ function addLocation(id, lat, lng, city, state, country){
         console.log("Client disconnected successfully");
     }
 }
+
+
 
 
 //Routes
@@ -398,6 +409,7 @@ app.get('/auth/facebook/feast_club',
   });
 
 app.get('/nearbyrestaurants', function(req, res){
+    console.log(req.query);
     if(req.isAuthenticated()){
         getNearbyRestaurantsByTripsAdvisor(req.query.lat, req.query.lng, res);
     }
@@ -416,6 +428,9 @@ app.get('/findrestaurant', function(req, res){
     }
 });
 
+app.get('/cityImage', function(req, res){
+    getImageForCity(req.query.city, res)
+})
 
 /* POST routes */
 

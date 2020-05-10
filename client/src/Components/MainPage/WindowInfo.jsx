@@ -11,6 +11,7 @@ import InfoBox from "./InfoBox"
 import UpdateLocationForm from "./UpdateLocationForm";
 import AlertDialog from '../SharedComponents/AlertDialog'
 import axios from 'axios';
+import { useSelector } from "react-redux";
 
 
 function WindowInfo(props){
@@ -21,17 +22,18 @@ function WindowInfo(props){
 
   const [open, setOpen] = useState(false);
 
+  const global_location = useSelector(state => state.userLocation);
+
   function openLocationDialog(){  
     setOpen(true);
   }
 
   function closeLocationDialog(){
-    console.log("closed");
     setOpen(false);
   }
 
   function findSpecificRestaurant(info){
-      console.log(info);
+      props.startLoading();
       axios.get("http://localhost:5000/findrestaurant", {
         withCredentials: true,
         params: {
@@ -41,25 +43,27 @@ function WindowInfo(props){
         }
       })
       .then((response) => {
-          console.log("Found it!!!");
-          const result = response.data.result;
-          console.log(response.data);
-          
-          if(result != undefined){
-              console.log("Restaurant is valid");
-              history.push("/info", {
-                  restaurant: result,
-                  origin: {lat: props.lat, lng: props.lng}, 
-                  destination: {lat: info.latLng.lat, lng: info.latLng.lng}
-                  
-              });
-          } else {
-              console.log("Restaurant is valid");
-              setInvalidSearch(true);
-          }
+        props.stopLoading();
+        console.log("Found it!!!");
+        const result = response.data.result;
+        console.log(response.data);
+        
+        if(result != undefined){
+            console.log("Restaurant is valid");
+            history.push("/info", {
+                restaurant: result,
+                origin: {lat: global_location.latLng.lat, lng: global_location.latLng.lng}, 
+                destination: {lat: info.latLng.lat, lng: info.latLng.lng}
+                
+            });
+        } else {
+            console.log("Restaurant is valid");
+            setInvalidSearch(true);
+        }
       })
       .catch(err => {
-          console.log(err);
+        props.stopLoading();
+        console.log(err);
       })
   }
 
@@ -69,14 +73,14 @@ function WindowInfo(props){
         <FontAwesomeIcon className="window-info-icon" icon={faUser}/>
         <FontAwesomeIcon id="compass" className="window-info-icon" icon={faCompass} onClick={openLocationDialog}/>
         <SearchBar 
-          lat={props.lat} 
-          lng ={props.lng} 
           findSpecificRestaurant={findSpecificRestaurant}
           setInvalidSearch={setInvalidSearch}
         />
         <p className="window-info-title">Check out {props.restaurants.data.length} restaurants near you!</p>
         {props.restaurants.data.map((restaurant) => (
           <InfoBox 
+          startLoading={props.startLoading}
+          stopLoading={props.stopLoading}
           findSpecificRestaurant={findSpecificRestaurant}
           lat={restaurant.latitude}
           lng={restaurant.longitude}
@@ -93,15 +97,15 @@ function WindowInfo(props){
         ))}
           {open && <UpdateLocationForm
             open={open}
+            close={closeLocationDialog}
             getNearbyRestaurants={props.getNearbyRestaurants}
           />}
         {invalidSearch 
           ? <AlertDialog
               open={invalidSearch}
-              close={closeLocationDialog}
+              close={() => setInvalidSearch(false)}
               alertTitle="Cannot find Restaurants!"
               alertMessage="Sorry! We are unable to find the restaurants that you requested. Please try again!"
-              
             />
           : null}
       </div>

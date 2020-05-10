@@ -9,6 +9,9 @@ import { faFacebook } from '@fortawesome/free-brands-svg-icons'
 
 import AlertDialog from '../SharedComponents/AlertDialog'
 
+import { signIn } from "../../actions";
+import { useDispatch } from "react-redux"
+
 import axios from "axios";
 
 function SignInBox(){
@@ -18,6 +21,8 @@ function SignInBox(){
     const [logInStatus, setLogInStatus] = useState(false)
     const [dialog, setDialog] = useState(false);
     const [message, setMessage] = useState("");
+
+    const dispatch = useDispatch();
 
     const successRoute = "/mainPage"
     const failRoute = "/error"
@@ -60,6 +65,7 @@ function SignInBox(){
                 // }
                 // console.log(mainPageData);
                 if(logInStatus){
+                    dispatch(signIn());
                     history.push("/mainPage");
                 } else{
                     setMessage(messageSendBack);
