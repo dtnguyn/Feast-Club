@@ -2,8 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import { createStore } from 'redux';
-import allReducers from './reducers/index'
-import { Provider } from 'react-redux'
+import allReducers from './reducers/index';
+import { Provider } from 'react-redux';
+import store from "./configureStore";
 
 //Fonts
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -17,11 +18,6 @@ import './fonts/Montserrat-Light.ttf'
 
 
 require('dotenv').config()
-
-const store = createStore(
-    allReducers, 
-    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-);
 
 ReactDOM.render(
     <Provider store={store}>

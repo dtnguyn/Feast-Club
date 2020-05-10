@@ -69,7 +69,7 @@ function WindowInfo(props){
 
     return(
       <div>
-        <FontAwesomeIcon className="window-info-icon" icon={faGlobeAsia}/>
+        <FontAwesomeIcon onClick={() => history.push("/explore")} className="window-info-icon" icon={faGlobeAsia}/>
         <FontAwesomeIcon className="window-info-icon" icon={faUser}/>
         <FontAwesomeIcon id="compass" className="window-info-icon" icon={faCompass} onClick={openLocationDialog}/>
         <SearchBar 
