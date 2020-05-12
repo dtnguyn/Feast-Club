@@ -9,7 +9,7 @@ import { faFacebook } from '@fortawesome/free-brands-svg-icons'
 
 import AlertDialog from '../SharedComponents/AlertDialog'
 
-import { signIn } from "../../actions";
+import { signIn, currentUserSignIn, updateCurrentLocation } from "../../actions";
 import { useDispatch } from "react-redux"
 
 import axios from "axios";
@@ -65,7 +65,9 @@ function SignInBox(){
                 // }
                 // console.log(mainPageData);
                 if(logInStatus){
+                    console.log(response.data.userInfo);
                     dispatch(signIn());
+                    dispatch(currentUserSignIn(response.data.userInfo));
                     history.push("/mainPage");
                 } else{
                     setMessage(messageSendBack);

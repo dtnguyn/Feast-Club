@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import '../../styles/Map.css';
+import '../../styles/Explore.css';
 import PlacesAutocomplete, {
     geocodeByAddress,
     getLatLng,
@@ -7,7 +7,7 @@ import PlacesAutocomplete, {
 import { useSelector } from "react-redux"
 
 
-function SearchBar(props){
+function InputRestaurantName(props){
     const global_location = useSelector(state => state.userLocation);
 
     const searchOptions={
@@ -22,24 +22,29 @@ function SearchBar(props){
         const results = await geocodeByAddress(value);
         const latLng = await getLatLng(results[0]);
 
-        console.log(results);
-        checkRestaurant(results[0], latLng);
-        setAddress(value);
+
+        if(checkRestaurant(results[0])){
+            props.setRestaurant({
+                id : results[0].place_id,
+                latLng: latLng
+            });
+            setAddress(value);
+        } else {
+            setAddress("");
+            alert("This is not a valid restaurant");
+        }
+        
     }
 
     function handleChange(value){
         setAddress(value);
     }
     
-    function checkRestaurant(restaurant, latLng){
+    function checkRestaurant(restaurant){
         if(!restaurant.types.includes('restaurant')){
-            props.setInvalidSearch(true)
+            return false;
         } else {
-            const info = {
-                id : restaurant.place_id,
-                latLng: latLng
-            }
-            props.findSpecificRestaurant(info);
+            return true;
         }
     }
 
@@ -47,13 +52,14 @@ function SearchBar(props){
         <div>
             <PlacesAutocomplete value={address} onChange={handleChange} onSelect={handleSelect} searchOptions={searchOptions}>
                 {({getInputProps, suggestions, getSuggestionItemProps, loading}) => (
-                <div>
+                <div class="form-group">
+                    <label className="compose-label">Restaurant Name</label>
                     <input 
                     {...getInputProps()}
-                    className="input-searchBar-window-info"
+                    className="compose-input-restaurant-name form-control"
                     type="text" 
                     name="search" 
-                    placeholder="Search for restaurants.."/>
+                    placeholder="Enter the restaurant..."/>
                     <div>
                     {suggestions.map(suggestion => {
                         const style ={
@@ -76,4 +82,4 @@ function SearchBar(props){
     );
 }
 
-export default SearchBar;
+export default InputRestaurantName;

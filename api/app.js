@@ -84,12 +84,12 @@ passport.use(new LocalStrategy({
 
 passport.serializeUser(function(user, done) {
     console.log("serializzeeeaseasee")
-    done(null, user.id);
+    done(null, user);
   });
   
-passport.deserializeUser(function(id, done) {
+passport.deserializeUser(function(user, done) {
     console.log("deserializzeeeaseasee")
-    findUserByIDToDeserialize(id, done);
+    findUserByIDToDeserialize(user, done);
 });
 
 //Google Strategy
@@ -160,11 +160,12 @@ async function addOauthUser(id, email, name) {
 async function findUserByEmail(email) {
     try{
         console.log("Connect to database successfully!");
-        const table = await pool.query("SELECT id, email, password FROM users WHERE email = $1", [email]);
+        const table = await pool.query("SELECT id, name, email, password FROM users WHERE email = $1", [email]);
         if (table.rows[0] != undefined){ // if there is a match email
             return user = {
                 id: table.rows[0].id,
                 email: table.rows[0].email,
+                name: table.rows[0].name,
                 password: table.rows[0].password
             }
         } else { // if there is no match email
@@ -210,22 +211,25 @@ async function findUserByIDOrCreate(profile, done) {
 }
 
 
-async function findUserByIDToDeserialize(id, done) {
+async function findUserByIDToDeserialize(user, done) {
+    const id = user.id;
     try{
         console.log("Connect to database successfully!");
         console.log("id: " + id);
-        const table = await pool.query("SELECT id, email, password FROM users WHERE id = $1", [id]);
-        const oauthTable = await pool.query("SELECT id, email FROM oauth_users WHERE id = $1", [id]);
+        const table = await pool.query("SELECT id, name, email, password FROM users WHERE id = $1", [id]);
+        const oauthTable = await pool.query("SELECT id, name, email FROM oauth_users WHERE id = $1", [id]);
         if (table.rows[0] != undefined){ // if there is a match id
             const user = {
                 id: table.rows[0].id,
                 email: table.rows[0].email,
+                name: table.rows[0].name,
                 password: table.rows[0].password
             }
             return done(null, user);
         } else if(oauthTable.rows[0] != undefined) {
             const user = {
                 id: oauthTable.rows[0].id,
+                name: table.rows[0].name,
                 email: oauthTable.rows[0].email,
             }
             //setLogInData(true, user.id, "");
@@ -325,9 +329,55 @@ function getSpecificRestaurant(id, lat, lng, response){
     //     response.send(res.body);
 
     // });
-
+    
+    //findOrInsertRestaurantsInDatabase("ChIJ_3lMQdAodTERNMFuONVSmWw", testRestaurant);
     response.send(testRestaurant);   
 }
+
+// function findOrInsertRestaurantsInDatabase(id, restaurant){
+//     try{
+//         console.log("----------------------------------");
+//         console.log("Finding restaurants in database...");
+        
+//         const table = await pool.query("SELECT id, name, email, password FROM restaurants WHERE id = $1", [id]);
+        
+//         if (table.rows[0] != undefined){ // if there is a match id
+//             console.log("Restaurant already in database");
+//         } else { // if there is no match id
+//             console.log("Restaurant is not in database, adding it to db now!");
+//             addRestaurant(restaurant);
+//         }  
+//     } catch (e){
+//         console.log("There's an error when finding restaurants in database");
+//     } finally {
+//         console.log("Finish Finding restaurants in database");
+//         console.log("--------------------------------------");
+//     }
+// }
+
+// function addRestaurant(restaurant){
+//     try{
+//         console.log("----------------------------------");
+//         console.log("Adding restaurants to database...");
+//         pool.query("INSERT INTO restaurants VALUES ($1, $2, $3, $4, $5)", 
+//             [
+//                 id, 
+//                 restaurant.name, 
+//                 lat,
+//                 lng,
+//                 restaurant.formatted_address,
+//             ]
+//         );
+
+//         return true;
+//     } catch (e){
+//         console.log(e);
+//         return false;
+//     } finally {
+//         console.log("Finish Finding restaurants in database");
+//         console.log("--------------------------------------");
+//     }
+// }
 
 function getRestaurantID(textInput, lat, lng, response){
     const req = unirest("GET", `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${textInput}&inputtype=textquery&fields=place_id,name,geometry&locationbias=circle:1000@${lat},${lng}&key=AIzaSyAEX7J8GBc__Ope0D6V1Ot8N7z-x1R0IPo`);
@@ -369,6 +419,20 @@ function addLocation(id, lat, lng, city, state, country){
     }
 }
 
+async function addBlogs(restaurant_id, user_id, author_name, content, response){
+    try{
+        console.log("-----------------------------")
+        console.log("Adding Blogs to database...");
+        id = await uuid();
+        await pool.query("INSERT INTO user_blogs VALUES ($1, $2, $3, $4, $5)", [id, restaurant_id, user_id, author_name, content]);
+        response.send(true);
+    } catch (e){
+        console.log(e);
+    } finally {
+        console.log("Finish Adding blogs to database");
+        console.log("-----------------------------");
+    }
+}
 
 
 
@@ -377,10 +441,16 @@ function addLocation(id, lat, lng, city, state, country){
 /* GET routes */
 
 app.get("/", (req, res) => {
+    console.log(req.session.passport.user);
     if(req.isAuthenticated()){
         res.send({
             logInStatus: true,
             message: "",
+            userInfo: {
+                id: req.session.passport.user.id,
+                name: req.session.passport.user.name,
+                email: req.session.passport.user.email
+            }
         })
         console.log("is authenticated");
     } else res.send();
@@ -463,6 +533,7 @@ app.post('/signin' ,(req, res, next) =>{
         }
         req.logIn(user, function(err) {
             console.log("Before redirect: " + req.session.passport);
+            console.log(user);
             if (err) { 
                 console.log(err);
                 return next(err); 
@@ -480,6 +551,17 @@ app.post('/savelocation', (req,res) => {
     const state = req.body.state;
     const country = req.body.country;
     res.send(addLocation(id, lat, lng, city, state, country));
+})
+
+app.post('/postBlog', (req,res) => {
+    if(req.isAuthenticated()){
+        console.log(req.body)
+        const restaurantID = req.body.restaurant.id;
+        const userID = req.session.passport.user.id;
+        const authorName = req.session.passport.user.name;
+        const content = req.body.blogContent;
+        addBlogs(restaurantID, userID, authorName, content, res);
+    } 
 })
 
 

@@ -31,3 +31,22 @@ ADD CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES user_ids(id);
 
 ALTER TABLE oauth_users
 ADD CONSTRAINT unique_oauth_email UNIQUE (email);
+
+-- CREATE TABLE restaurants(
+--    id VARCHAR(50) PRIMARY KEY,
+--    name varchar(50) NOT NULL,
+--    latitude numeric(9, 6) NOT NULL,
+--    longitude numeric(9, 6) NOT NULL,
+--    address varchar(100) NOT NULL,
+-- );
+
+
+CREATE TABLE user_blogs(
+   id varchar PRIMARY KEY,
+   restaurant_id VARCHAR(50) NOT NULL,
+   user_id VARCHAR(50) NOT NULL,
+   author_name varchar(30) NOT NULL,
+   content VARCHAR NOT NULL,
+   date_posted TIMESTAMP NOT NULL,
+   FOREIGN KEY (user_id) REFERENCES user_ids (id)
+);
