@@ -15,7 +15,7 @@ const ComposeDialog = (props) => {
     const [blogContent, setBlogContent] = useState("");
 
     const handlePost = () => {
-        axios.post("http://localhost:5000/postBlog", {restaurant, blogContent}, {withCredentials: true})
+        axios.post("http://localhost:5000/blogPosts", {restaurant, blogContent}, {withCredentials: true})
             .then((response) => {
                 if(response.data){
                     alert("Added Blog!");
@@ -29,7 +29,7 @@ const ComposeDialog = (props) => {
     return(
         <Dialog maxWidth="lg" fullWidth={true} className="compose-dialog" open={props.open}>
             <div className="compose-header">
-                <img src="/user-icon.svg" style={{width: "60px", height: "60px"}} />
+                <img src="/default-user-icon.svg" style={{width: "60px", height: "60px"}} />
                 <p className="compose-author">{userName}</p>
             </div>
             <div className="compose-body">

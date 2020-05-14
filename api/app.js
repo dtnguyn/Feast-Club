@@ -276,7 +276,7 @@ function getNearbyRestaurantsByGoogle(lat, lng, response){
                 lng: lng
             }
             //console.log(res.body);
-            console.log(util.inspect(res.body, {showHidden: false, depth: null}))
+            console.log(util.inspect(res.body, {showHidden: false, depth: null}));
             response.send({
                 location: latLng,
                 restaurants: res.body
@@ -419,12 +419,12 @@ function addLocation(id, lat, lng, city, state, country){
     }
 }
 
-async function addBlogs(restaurant_id, user_id, author_name, content, response){
+async function addBlogs(restaurant_id, user_id, author_name, name, address, content, response){
     try{
         console.log("-----------------------------")
         console.log("Adding Blogs to database...");
         id = await uuid();
-        await pool.query("INSERT INTO user_blogs VALUES ($1, $2, $3, $4, $5)", [id, restaurant_id, user_id, author_name, content]);
+        await pool.query("INSERT INTO user_blogs VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [id, restaurant_id, user_id, author_name, name, address, content, new Date()]);
         response.send(true);
     } catch (e){
         console.log(e);
@@ -434,6 +434,28 @@ async function addBlogs(restaurant_id, user_id, author_name, content, response){
     }
 }
 
+async function getBlogPosts(callBack){
+    try{
+        console.log("-----------------------------");
+        console.log("Fetching blogs from database...");
+        const table = await pool.query(
+            "SELECT * FROM " +
+            "(SELECT users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date " + 
+            "FROM user_blogs, users " + 
+            "WHERE user_blogs.user_id = users.id " +
+            "UNION ALL " +
+            "SELECT oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date " + 
+            "FROM user_blogs, oauth_users " + 
+            "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
+            "ORDER BY date");   
+        callBack(table.rows);
+    } catch (e) {
+        console.log(e);
+    } finally {
+        console.log("Finish fetching blogs from database");
+        console.log("-----------------------------------");
+    }
+}
 
 
 //Routes
@@ -502,6 +524,13 @@ app.get('/cityImage', function(req, res){
     getImageForCity(req.query.city, res)
 })
 
+app.get('/blogPosts', (req, res) => {
+    getBlogPosts((blogs) => {
+        console.log(util.inspect(blogs, {showHidden: false, depth: null}))
+        res.send(blogs);
+    });
+});
+
 /* POST routes */
 
 app.post("/register", (req, res) =>{
@@ -553,20 +582,18 @@ app.post('/savelocation', (req,res) => {
     res.send(addLocation(id, lat, lng, city, state, country));
 })
 
-app.post('/postBlog', (req,res) => {
+app.post('/blogPosts', (req,res) => {
     if(req.isAuthenticated()){
         console.log(req.body)
         const restaurantID = req.body.restaurant.id;
         const userID = req.session.passport.user.id;
         const authorName = req.session.passport.user.name;
+        const restaurantName = req.body.restaurant.name;
+        const restaurantAdress = req.body.restaurant.address;
         const content = req.body.blogContent;
-        addBlogs(restaurantID, userID, authorName, content, res);
+        addBlogs(restaurantID, userID, authorName, restaurantName, restaurantAdress,content, res);
     } 
 })
-
-
-
-
 
 
 app.listen(port, () => console.log(`Feast Club is running on port ${port}!`));

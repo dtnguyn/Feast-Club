@@ -46,7 +46,14 @@ CREATE TABLE user_blogs(
    restaurant_id VARCHAR(50) NOT NULL,
    user_id VARCHAR(50) NOT NULL,
    author_name varchar(30) NOT NULL,
+   restaurant_name varchar(30) NOT NULL,
+   restaurant_address varchar NOT NULL,
    content VARCHAR NOT NULL,
    date_posted TIMESTAMP NOT NULL,
    FOREIGN KEY (user_id) REFERENCES user_ids (id)
+);
+
+CREATE TABLE user_avatar(
+   id varchar PRIMARY KEY,
+   avatar varchar(50) 
 );

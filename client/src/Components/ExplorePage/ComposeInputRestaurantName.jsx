@@ -21,11 +21,15 @@ function InputRestaurantName(props){
     async function handleSelect(value){
         const results = await geocodeByAddress(value);
         const latLng = await getLatLng(results[0]);
-
+        console.log(results);
 
         if(checkRestaurant(results[0])){
+            const name = value.split(",")[0];
+            console.log(name);
             props.setRestaurant({
                 id : results[0].place_id,
+                name,
+                address: results[0].formatted_address,
                 latLng: latLng
             });
             setAddress(value);
