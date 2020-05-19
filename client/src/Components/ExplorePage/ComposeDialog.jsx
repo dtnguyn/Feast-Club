@@ -18,7 +18,10 @@ const ComposeDialog = (props) => {
         axios.post("http://localhost:5000/blogPosts", {restaurant, blogContent}, {withCredentials: true})
             .then((response) => {
                 if(response.data){
-                    alert("Added Blog!");
+                    props.updateBlogs();
+                    setRestaurant(null);
+                    setBlogContent('');
+                    props.handleClose();
                 }
             })
             .catch(err => {
@@ -49,7 +52,7 @@ const ComposeDialog = (props) => {
                 <Fab onClick={() => props.handleClose()} className="fab" aria-label="edit" style={{backgroundColor: red[100], margin: 20}}>
                     <Cancel className="compose-cancel-icon" />
                 </Fab>
-                <Fab onClick={() => handlePost()}className="fab" aria-label="edit" style={{backgroundColor: green[100], margin: 20}}>
+                <Fab onClick={() => handlePost()} className="fab" aria-label="edit" style={{backgroundColor: green[100], margin: 20}}>
                     <Check className="compose-check-icon" />
                 </Fab>
             </div>

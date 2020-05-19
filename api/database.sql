@@ -50,10 +50,44 @@ CREATE TABLE user_blogs(
    restaurant_address varchar NOT NULL,
    content VARCHAR NOT NULL,
    date_posted TIMESTAMP NOT NULL,
+   FOREIGN KEY (user_id) REFERENCES user_ids (id) ON DELETE CASCADE
+);
+
+CREATE TABLE user_blog_location(
+   blog_id varchar PRIMARY KEY,
+   city varchar(30) NOT NULL,
+   country varchar(30) NOT NULL,
+   FOREIGN KEY (blog_id) REFERENCES user_blogs (id) ON DELETE CASCADE
+);
+
+CREATE TABLE user_blog_hearts(
+   id varchar PRIMARY KEY,
+   blog_id varchar NOT NULL,
+   user_id varchar(50) NOT NULL,
+   FOREIGN KEY (blog_id) REFERENCES user_blogs (id) ON DELETE CASCADE,
    FOREIGN KEY (user_id) REFERENCES user_ids (id)
 );
 
-CREATE TABLE user_avatar(
-   id varchar PRIMARY KEY,
-   avatar varchar(50) 
-);
+SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, date, city, country, hearts, is_liked FROM
+(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date  
+FROM user_blogs, users 
+WHERE user_blogs.user_id = users.id 
+UNION ALL 
+SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date  
+FROM user_blogs, oauth_users 
+WHERE user_blogs.user_id = oauth_users.id
+) as blogs  
+
+INNER JOIN user_blog_location ON user_blog_location.blog_id = id
+
+LEFT JOIN (
+SELECT blog_id, COUNT(*) as hearts,
+	CASE user_id WHEN '817de5fa-0b1a-43b2-8811-512100b85b96' THEN 1
+		else 0
+	END as is_liked
+FROM user_blog_hearts
+GROUP BY blog_id, user_id
+) as hearts ON hearts.blog_id = id
+
+WHERE city = 'Hồ Chí Minh' AND country = 'Vietnam' 
+ORDER BY date DESC   

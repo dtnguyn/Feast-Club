@@ -5,6 +5,7 @@ import PlacesAutocomplete, {
     getLatLng,
   } from 'react-places-autocomplete';
 import { useSelector } from "react-redux"
+import getCityAndCountry from "../../Utilities/getCityAndCountry"
 
 
 function InputRestaurantName(props){
@@ -26,12 +27,17 @@ function InputRestaurantName(props){
         if(checkRestaurant(results[0])){
             const name = value.split(",")[0];
             console.log(name);
-            props.setRestaurant({
-                id : results[0].place_id,
-                name,
-                address: results[0].formatted_address,
-                latLng: latLng
-            });
+            getCityAndCountry(latLng.lat, latLng.lng, (location) => {
+                props.setRestaurant({
+                    id : results[0].place_id,
+                    name,
+                    address: results[0].formatted_address,
+                    latLng: latLng,
+                    city: location.city,
+                    country: location.country
+                });
+            })
+            
             setAddress(value);
         } else {
             setAddress("");
