@@ -54,12 +54,8 @@ const BlogPost = (props) => {
                 <Dropdown className="toggle">
                     <Dropdown.Toggle variant="info" size="sm"  />
                     <Dropdown.Menu>
-                        <Dropdown.Item onClick={() => {}}>Edit</Dropdown.Item>
-                        <Dropdown.Item 
-                            onClick={() => {
-                                props.requestDeleteBlog();
-                            }
-                        }>Delete</Dropdown.Item>
+                        <Dropdown.Item onClick={props.triggerEditDialog}>Edit</Dropdown.Item>
+                        <Dropdown.Item onClick={props.requestDeleteBlog}>Delete</Dropdown.Item>
                     </Dropdown.Menu>
                 </Dropdown>
                 <p className="compose-date">{props.date}</p>

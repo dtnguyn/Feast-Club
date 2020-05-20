@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import '../../styles/Explore.css';
 import PlacesAutocomplete, {
     geocodeByAddress,
@@ -58,16 +58,23 @@ function InputRestaurantName(props){
         }
     }
 
+    useEffect(() => {
+        if(address == ""){
+            props.setRestaurant(null);
+        }
+    }, [address])
+
     return(
         <div>
             <PlacesAutocomplete value={address} onChange={handleChange} onSelect={handleSelect} searchOptions={searchOptions}>
                 {({getInputProps, suggestions, getSuggestionItemProps, loading}) => (
-                <div class="form-group">
+                <div className="form-group">
                     <label className="compose-label">Restaurant Name</label>
                     <input 
                     {...getInputProps()}
                     className="compose-input-restaurant-name form-control"
                     type="text" 
+                    value={address}
                     name="search" 
                     placeholder="Enter the restaurant..."/>
                     <div>

@@ -29,7 +29,12 @@ function ExplorePage(){
 
     const [deleteDialog, setDeleteDialog] = useState(false);
 
-    const [focusBlog, setFocusBlog] = useState('')
+    const [focusBlog, setFocusBlog] = useState({
+        blogID: '',
+        restaurant: '',
+        blogContent: ''
+    })
+
 
     const style = {
         margin: 0,
@@ -42,6 +47,13 @@ function ExplorePage(){
     };
     console.log("City: " + global_location.lat);
 
+    const resetFocusBlog = () => {
+        setFocusBlog({
+            blogID: '',
+            restaurant: '',
+            blogContent: ''
+        })
+    }
 
     function getCityImage(city){
         setLoading(true);
@@ -90,6 +102,20 @@ function ExplorePage(){
             })
     }
 
+    const postBlog = (restaurant, blogContent, callback) => {
+        axios.post("http://localhost:5000/blogPosts", {restaurant, blogContent}, {withCredentials: true})
+            .then((response) => {
+                if(response.data){
+                    getBlogs();
+                    callback(true);
+                    setOpenCompose(false)
+                }
+            })
+            .catch(err => {
+                console.log(err);
+            })
+    }
+
     const deleteBlog = (blogID) => {
         axios.delete("http://localhost:5000/blogPosts", {
             withCredentials: true,
@@ -100,8 +126,25 @@ function ExplorePage(){
             .then(response => {
                 if(response.data){
                     console.log("Successfully delete a blogpost!");
-                    setFocusBlog('')
+                    resetFocusBlog();
                     getBlogs();
+                }
+                    
+            })
+    }
+
+
+    const editBlog = (restaurant, blogContent, callback) => {
+        axios.patch("http://localhost:5000/blogPosts", {blogID: focusBlog.blogID, restaurant, blogContent},{
+            withCredentials: true,
+        })
+            .then(response => {
+                if(response.data){
+                    console.log("Successfully edit a blogpost!");
+                    resetFocusBlog();
+                    getBlogs();
+                    setOpenCompose(false);
+                    callback(true);
                 }
                     
             })
@@ -135,8 +178,18 @@ function ExplorePage(){
                     hearts={blog.hearts ? blog.hearts : 0}
                     isHearted={blog.is_hearted == 1}
                     requestDeleteBlog={() => {
-                        setFocusBlog(blog.id)
+                        setFocusBlog({...focusBlog, blogID: blog.id});
                         setDeleteDialog(true)
+                    }}
+                    triggerEditDialog={() => {
+                        
+                        setFocusBlog({
+                            ...focusBlog,
+                            blogID: blog.id,
+                            restaurant: blog.restaurant_name.concat(", ", blog.restaurant_address),
+                            blogContent: blog.content
+                        });
+                        setOpenCompose(true);
                     }}
                 />
             })}
@@ -144,12 +197,21 @@ function ExplorePage(){
             <Fab onClick={() => setOpenCompose(true)} className="fab" style={style}  aria-label="edit">
                 <EditIcon className="compose-icon" />
             </Fab>
-            <ComposeDialog open={openCompose} handleClose={() => setOpenCompose(false)} updateBlogs={() => getBlogs()}/>
+            <ComposeDialog 
+                open={openCompose} 
+                handleClose={() => {
+                    setOpenCompose(false);
+                    resetFocusBlog();
+                }} 
+                focusBlog={focusBlog}
+                handlePost={postBlog}
+                handleEdit={editBlog}
+            />
             <ConfirmDialog 
                 open={deleteDialog} 
                 close={() => setDeleteDialog(false)} 
                 message="Do you want to delete this post?"
-                confirmedAction={() => deleteBlog(focusBlog)}
+                confirmedAction={() => deleteBlog(focusBlog.blogID)}
             />
         </div>
         

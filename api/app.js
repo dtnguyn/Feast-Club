@@ -513,7 +513,7 @@ async function addHeart(blogID, userID, callback){
         }
     } catch (e){
         console.log(e);
-        client.query("ROLLBACK");
+        pool.query("ROLLBACK");
     } finally {
         console.log("Finish Adding Love to database");
         console.log("-----------------------------");
@@ -536,13 +536,49 @@ async function deleteHeart(blogID, userID, callback){
         
     } catch (e){
         console.log(e);
-        client.query("ROLLBACK");
+        pool.query("ROLLBACK");
     } finally {
         console.log("Finish Deleting Love from database");
         console.log("-----------------------------");
     }
 }
 
+async function editBlogPost(blogID, restaurantID, restaurantName, restaurantAddress, blogContent, city, country, callback){
+    try {
+        console.log("-----------------------------")
+        console.log("Editing blog post From database...");
+        const editBlogResult = await pool.query
+        (
+            "UPDATE user_blogs SET " +
+            "restaurant_id = $1, " +
+            "restaurant_name = $2, " +
+            "restaurant_address = $3, " + 
+            "content = $4 " +
+            "WHERE id = $5 "
+        , [restaurantID, restaurantName, restaurantAddress, blogContent, blogID]);
+        const editBlogLocationResult = await pool.query
+        (
+            "UPDATE user_blog_location SET " +
+            "city = $1, " +
+            "country = $2 " + 
+            "WHERE blog_id = $3 "
+        , [city, country, blogID]);
+        
+        if(editBlogResult.rowCount == 1 && editBlogLocationResult.rowCount == 1){
+            console.log("Successfully edit blog post!")
+            callback(true);
+        } else throw "Something went wrong when editting blog post!";
+
+    } catch(error){
+        console.log("Fail! to edit post");
+        console.log(error);
+        callback(false);
+        pool.query("ROLLBACK");
+    } finally {
+        console.log("Finishing Editing blog post From database...");
+        console.log("-----------------------------");
+    }
+}
 
 //Routes
 
@@ -698,17 +734,36 @@ app.post('/love', (req, res) => {
     }
 })
 
-app.delete('/love', (req, res) => {
+//Update Routes
+
+app.patch('/blogPosts', (req, res) => {
     if(req.isAuthenticated()){
-        deleteHeart(req.query.blogID, req.query.userID, (result) => {
+        console.log(req.body);
+        const blogID = req.body.blogID;
+        const restaurantID = req.body.restaurant.id
+        const restaurantName = req.body.restaurant.name;
+        const restaurantAdress = req.body.restaurant.address;
+        const content = req.body.blogContent;
+        const city = req.body.restaurant.city;
+        const country = req.body.restaurant.country;
+        editBlogPost(blogID, restaurantID ,restaurantName, restaurantAdress, content, city, country, (result) => res.send(result));
+    }
+})
+
+
+//Delete Routes
+
+app.delete('/blogPosts', (req, res) => {
+    if(req.isAuthenticated()){
+        deleteBlogPost(req.query.blogID, (result) => {
             res.send(result);
         });
     }
 })
 
-app.delete('/blogPosts', (req, res) => {
+app.delete('/love', (req, res) => {
     if(req.isAuthenticated()){
-        deleteBlogPost(req.query.blogID, (result) => {
+        deleteHeart(req.query.blogID, req.query.userID, (result) => {
             res.send(result);
         });
     }
