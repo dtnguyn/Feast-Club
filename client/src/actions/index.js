@@ -19,7 +19,6 @@ export const signIn = () => {
 }
 
 export const currentUserSignIn = (userInfo) => {
-    console.log("Hello World user: ", userInfo);
     return {
         type: "USER_SIGN_IN",
         payload: userInfo

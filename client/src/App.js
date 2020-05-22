@@ -7,6 +7,7 @@ import MainPage from "./Components/MainPage/MainPage"
 import RegisterStatusPage from "./Components/RegisterPage/RegisterStatusPage";  
 import RestaurantInfoDetailPage from "./Components/RestaurantInfoDetailPage/RestaurantInfoDetailPage";
 import ExplorePage from "./Components/ExplorePage/ExplorePage"
+import BlogDetailPage from "./Components/BlogDetailPage/BlogDetailPage"
 
 import './styles/App.css';
 
@@ -28,6 +29,7 @@ function App(props) {
       <Route path="/mainPage" component={MainPage}/>
       <Route path="/info" component={RestaurantInfoDetailPage}/>
       <Route path="/explore" component={ExplorePage}/>
+      <Route path="/bloginfo" component={BlogDetailPage}/>
     </Router>
   );
 }

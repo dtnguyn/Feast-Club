@@ -121,6 +121,7 @@ function RestaurantInfoDetailPage(props){
                 {restaurant.reviews.map(review => {
                     return(
                         <ReviewCard 
+                            type="review"
                             author={review.author_name}
                             rating={review.rating}
                             img={review.profile_photo_url}

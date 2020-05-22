@@ -421,9 +421,9 @@ function addLocation(id, lat, lng, city, state, country){
 
 async function addBlogs(restaurant_id, user_id, author_name, name, address, content, city, country, response){
     try{
-        console.log("-----------------------------")
+        console.log("-----------------------------");
         console.log("Adding Blogs to database...");
-        id = await uuid();
+        const id = await uuid();
         await pool.query("INSERT INTO user_blogs VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [id, restaurant_id, user_id, author_name, name, address, content, new Date()]);
         await pool.query("INSERT INTO user_blog_location VALUES($1, $2, $3)", [id, city, country]);
         response.send(true);
@@ -508,7 +508,7 @@ async function addHeart(blogID, userID, callback){
             console.log("Successfull!");
             callback(true);
         } else {
-            console.log("Fail to delete");
+            console.log("Fail to add");
             callback(false);
         }
     } catch (e){
@@ -577,6 +577,83 @@ async function editBlogPost(blogID, restaurantID, restaurantName, restaurantAddr
     } finally {
         console.log("Finishing Editing blog post From database...");
         console.log("-----------------------------");
+    }
+}
+
+
+async function addComment(blogID, userID, authorName, content, callback){
+    try {
+        console.log("--------------------------");
+        console.log("Adding comment to database");
+        
+        const id = await uuid();
+        const result = await pool.query("INSERT INTO user_blog_comments VALUES($1, $2, $3, $4, $5, $6)", [id, blogID, userID, authorName, content, new Date()])
+        if(result.rowCount == 1){
+            console.log("Successful!");
+            callback(true);
+        } else {
+            console.log("Fail to add comment");
+            callback(false);
+        }
+    } catch(error) {
+        console.log("Fail to add comment!");
+        console.log(error);
+        callback(false);
+    } finally {
+        console.log("Finish adding comment to database");
+        console.log("----------------------------------")
+    }
+}
+
+async function getComments(callback){
+    try {
+        console.log("--------------------------");
+        console.log("Getting comments from database");
+
+        const result = await pool.query
+        (
+            "SELECT *, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
+            "(SELECT user_blog_comments.id as comment_id, blog_id, user_id, author_name, comment_content, users.avatar, date_posted " +
+            "FROM user_blog_comments, users " +
+            "WHERE user_id = users.id " +
+            "UNION ALL " +
+            "SELECT user_blog_comments.id as comment_id, blog_id, user_id, author_name, comment_content, oauth_users.avatar, date_posted " +
+            "FROM user_blog_comments, oauth_users " +
+            "WHERE user_id = oauth_users.id) as comments " +
+            "ORDER BY date_posted DESC"
+        );
+        console.log(result.rows);
+        callback(result.rows);
+
+    } catch(error) {
+        console.log("Fail to get comment!")
+        console.log(error);
+    } finally {
+        console.log("Finish Getting comments from database");
+        console.log("-------------------------------");
+    }
+}
+
+async function deleteComment(commentID, callback){
+    try {
+        console.log("---------------------------");
+        console.log("Deleting comments from database");
+
+        const result = await pool.query("DELETE FROM user_blog_comments WHERE id = $1", [commentID]);
+        if(result.rowCount == 1){
+            console.log("Successful!");
+            callback(true);
+        } else {
+            console.log("Fail to delete comment");
+            callback(false);
+        }
+
+    } catch (error) {  
+        console.log("Fail to delete comment!")
+        console.log(error);
+    } finally {
+        console.log("Finish deleting comments from database");
+        console.log("---------------------------");
     }
 }
 
@@ -659,6 +736,14 @@ app.get('/blogPosts', (req, res) => {
     });
 });
 
+app.get('/comments', (req, res) => {
+    if(req.isAuthenticated()){
+        getComments((result) => {
+            res.send(result);
+        })
+    }
+})
+
 /* POST routes */
 
 app.post("/register", (req, res) =>{
@@ -726,13 +811,24 @@ app.post('/blogPosts', (req,res) => {
 })
 
 app.post('/love', (req, res) => {
-    console.log("herereererer");
     if(req.isAuthenticated()){
         addHeart(req.body.blogID, req.body.userID, (result) => {
             res.send(result);
         });
     }
 })
+
+
+app.post('/comments', (req, res) => {
+    if(req.isAuthenticated()){
+        console.log(req.body.blogID);
+        addComment(req.body.blogID, req.body.userID, req.body.authorName, req.body.content, (result) => {
+            res.send(result);
+        })
+    }
+})
+
+
 
 //Update Routes
 
@@ -766,6 +862,15 @@ app.delete('/love', (req, res) => {
         deleteHeart(req.query.blogID, req.query.userID, (result) => {
             res.send(result);
         });
+    }
+})
+
+app.delete('/comments', (req, res) => {
+    if(req.isAuthenticated()){
+        console.log(req.query)
+        deleteComment(req.query.commentID, (result) => {
+            res.send(result);
+        })
     }
 })
 

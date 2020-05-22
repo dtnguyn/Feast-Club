@@ -82,7 +82,7 @@ function ExplorePage(){
     }
 
     const getBlogs = () => {
-        console.log("hererere");
+
         setLoading(true);
         axios.get("http://localhost:5000/blogPosts", {
             withCredentials: true,
@@ -167,6 +167,7 @@ function ExplorePage(){
             <h2 className="explore-title">See what other people eat in <br/> {global_location.city} city</h2>
             {blogs.map(blog => {
                 return <BlogPost
+                    blog={blog}
                     blogID={blog.id}
                     userID={blog.user_id}
                     avatar={blog.user_ava}

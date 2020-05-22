@@ -91,3 +91,15 @@ GROUP BY blog_id, user_id
 
 WHERE city = 'Hồ Chí Minh' AND country = 'Vietnam' 
 ORDER BY date DESC   
+
+
+CREATE TABLE user_blog_comments(
+   id varchar PRIMARY KEY,
+   blog_id varchar NOT NULL,
+   user_id varchar(50) NOT NULL,
+   author_name varchar(50) NOT NULL,
+   comment_content varchar NOT NULL,
+   date_posted TIMESTAMP NOT NULL,
+   FOREIGN KEY (blog_id) REFERENCES user_blogs (id) ON DELETE CASCADE,
+   FOREIGN KEY (user_id) REFERENCES user_ids (id)
+);

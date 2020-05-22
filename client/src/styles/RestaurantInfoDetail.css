@@ -98,7 +98,7 @@
 }
 
 .review-box{
-  background-color: #d9d9d9;
+  background-color: #f7f6f8;
   border-radius: 20px;
   text-align: left;
 }
@@ -110,6 +110,7 @@
 }
 
 #review-content {
-  font-family: Montserrat-Medium;
-  font-weight: normal;
+  font-family: Montserrat-Light;
+  font-size: 1.3rem;
+  white-space: pre-wrap;
 }
