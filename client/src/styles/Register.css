@@ -6,10 +6,7 @@ h3 {
     margin-top: 6%;
 }
 
-::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
-    color: #eb8242;
-    opacity: 1; /* Firefox */
-  }
+
 
 
 /* Register Page */
@@ -80,7 +77,11 @@ li{
   }
   
 .input-searchBar[type=text]:focus {
-    width: 70%;
+    width: 50%;
+}
+
+.input-searchBar::placeholder {
+    color: #eb8242;
 }
 
 .register-info-box {

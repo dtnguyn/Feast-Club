@@ -103,3 +103,46 @@ CREATE TABLE user_blog_comments(
    FOREIGN KEY (blog_id) REFERENCES user_blogs (id) ON DELETE CASCADE,
    FOREIGN KEY (user_id) REFERENCES user_ids (id)
 );
+
+
+SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM
+(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted 
+FROM user_blogs, users 
+WHERE user_blogs.user_id = users.id 
+UNION ALL 
+SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted 
+FROM user_blogs, oauth_users 
+WHERE user_blogs.user_id = oauth_users.id) as blogs 
+
+INNER JOIN user_blog_location ON user_blog_location.blog_id = id 
+
+LEFT JOIN ( 
+SELECT heart_count.blog_id, hearts, 
+	CASE is_hearted WHEN 1 
+	THEN 1
+	ELSE 0
+	END as is_hearted
+FROM(
+	SELECT blog_id, COUNT(blog_id) as hearts
+	FROM user_blog_hearts
+	GROUP BY blog_id
+) as heart_count
+left JOIN (
+	SELECT blog_id, COUNT(blog_id) as is_hearted FROM(
+		SELECT blog_id
+		FROM user_blog_hearts
+		WHERE user_id = '103545972077000374345'
+		) as a
+	GROUP BY blog_id
+) as is_hearted
+ON is_hearted.blog_id = heart_count.blog_id
+) as hearts ON hearts.blog_id = id 
+
+LEFT JOIN ( 
+SELECT blog_id, COUNT(*) as comments 
+FROM user_blog_comments 
+GROUP BY blog_id
+) as comments ON comments.blog_id = id 
+
+WHERE city = 'Hồ Chí Minh' AND country = 'Vietnam' 
+ORDER BY date_posted DESC

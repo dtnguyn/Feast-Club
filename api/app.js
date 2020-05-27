@@ -144,12 +144,12 @@ async function addUser(name, email, password, res) {
 async function addOauthUser(id, email, name) {
     try{
         console.log("Connect to database successfully!")
-        await pool.query("INSERT INTO oauth_users VALUES ($1, $2, $3)", [id, email, name]);
+        await pool.query("INSERT INTO oauth_users VALUES ($1, $2, $3)", [id, name, email]);
         await pool.query("INSERT INTO user_ids VALUES ($1, $2)", [id, email]);
 
     } catch (e){
         console.log(e);
-
+        await pool.query("ROLL BACK");
     } finally {
         console.log("Client disconnected successfully");
     }
@@ -182,8 +182,8 @@ async function findUserByIDOrCreate(profile, done) {
     try{
         console.log("Connect to database successfully!");
         const table = await pool.query("SELECT id, name, email FROM oauth_users WHERE id = $1", [profile.id]);
-        console.log(table.rows);
-        if (table.rows[0] != undefined){ // if there is a match id
+        console.log("find or create: ", table.rows);
+        if (table.rows.length != 0 && table.rows[0] != undefined){ // if there is a match id
             const user = {
                 id: table.rows[0].id,
                 name: table.rows[0].name,
@@ -218,7 +218,7 @@ async function findUserByIDToDeserialize(user, done) {
         console.log("id: " + id);
         const table = await pool.query("SELECT id, name, email, password FROM users WHERE id = $1", [id]);
         const oauthTable = await pool.query("SELECT id, name, email FROM oauth_users WHERE id = $1", [id]);
-        if (table.rows[0] != undefined){ // if there is a match id
+        if (table.rows.length != 0 && table.rows[0] != undefined){ // if there is a match id
             const user = {
                 id: table.rows[0].id,
                 email: table.rows[0].email,
@@ -226,10 +226,11 @@ async function findUserByIDToDeserialize(user, done) {
                 password: table.rows[0].password
             }
             return done(null, user);
-        } else if(oauthTable.rows[0] != undefined) {
+        } else if(oauthTable.rows.length != 0 && oauthTable.rows[0] != undefined) {
+            console.log(oauthTable.rows[0].name);
             const user = {
                 id: oauthTable.rows[0].id,
-                name: table.rows[0].name,
+                name: oauthTable.rows[0].name,
                 email: oauthTable.rows[0].email,
             }
             //setLogInData(true, user.id, "");
@@ -440,31 +441,51 @@ async function getBlogPosts(city, country, userID,callBack){
     try{
         console.log("-----------------------------");
         console.log("Fetching blogs from database...");
-        const table = await pool.query(
-            "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, date, city, country, hearts, is_hearted FROM " +
-            "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date " + 
-            "FROM user_blogs, users " + 
+        const table = await pool.query
+        (
+            "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
+            "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+            "FROM user_blogs, users " +
             "WHERE user_blogs.user_id = users.id " +
             "UNION ALL " +
-            "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date " + 
-            "FROM user_blogs, oauth_users " + 
-            "WHERE user_blogs.user_id = oauth_users.id) as blogs " + 
-            
-            "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
-            
-            "LEFT JOIN ( " +
-            "SELECT blog_id, COUNT(*) as hearts, " + 
-            `CASE user_id WHEN '${userID}' THEN 1`  +
-		    "else 0 " +
-	        "END as is_hearted " +
-            "FROM user_blog_hearts " +
-            "GROUP BY blog_id, user_id " +
-            ") as hearts ON hearts.blog_id = id " +
-            
-            
+            "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+            "FROM user_blogs, oauth_users " +
+            "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
 
-            `WHERE city = '${city}' AND country = '${country}' ` +
-            "ORDER BY date DESC");   
+            "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
+
+            "LEFT JOIN ( " +
+            "SELECT heart_count.blog_id, hearts, " +
+            "    CASE is_hearted WHEN 1 " +
+            "    THEN 1 " +
+            "    ELSE 0 " +
+            "    END as is_hearted " +
+            "FROM( " +
+            "    SELECT blog_id, COUNT(blog_id) as hearts " +
+            "    FROM user_blog_hearts " +
+            "   GROUP BY blog_id " +
+            ") as heart_count " +
+            "left JOIN ( " +
+            "    SELECT blog_id, COUNT(blog_id) as is_hearted FROM( " +
+            "        SELECT blog_id " +
+            "        FROM user_blog_hearts " +
+            "        WHERE user_id = $1 " +
+            "        ) as a " +
+            "    GROUP BY blog_id " +
+            ") as is_hearted " +
+            "ON is_hearted.blog_id = heart_count.blog_id " +
+            ") as hearts ON hearts.blog_id = id " +
+
+            "LEFT JOIN ( " +
+            "SELECT blog_id, COUNT(*) as comments " +
+            "FROM user_blog_comments " +
+            "GROUP BY blog_id " +
+            ") as comments ON comments.blog_id = id  " +
+
+            "WHERE city = $2 AND country = $3 " +
+            "ORDER BY date_posted DESC "
+
+        , [userID, city, country]);
         callBack(table.rows);
     } catch (e) {
         console.log(e);
@@ -605,10 +626,10 @@ async function addComment(blogID, userID, authorName, content, callback){
     }
 }
 
-async function getComments(callback){
+async function getComments(blogID, callback){
     try {
         console.log("--------------------------");
-        console.log("Getting comments from database");
+        console.log("Getting comments from database", blogID);
 
         const result = await pool.query
         (
@@ -620,8 +641,9 @@ async function getComments(callback){
             "SELECT user_blog_comments.id as comment_id, blog_id, user_id, author_name, comment_content, oauth_users.avatar, date_posted " +
             "FROM user_blog_comments, oauth_users " +
             "WHERE user_id = oauth_users.id) as comments " +
+            "WHERE blog_id = $1 " +
             "ORDER BY date_posted DESC"
-        );
+        , [blogID]);
         console.log(result.rows);
         callback(result.rows);
 
@@ -738,7 +760,7 @@ app.get('/blogPosts', (req, res) => {
 
 app.get('/comments', (req, res) => {
     if(req.isAuthenticated()){
-        getComments((result) => {
+        getComments(req.query.blogID, (result) => {
             res.send(result);
         })
     }

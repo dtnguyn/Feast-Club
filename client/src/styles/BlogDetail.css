@@ -33,13 +33,16 @@
 
 
 
-.delete-button {
+.small-button {
     width: 30px;
     height: 30px;
     float: right;
-    margin: 10px    ;
+    margin-right: 10px;
+    margin-bottom: 10px;
 }
 
 .press-button:active {
     padding: 3px;
 }
+
+

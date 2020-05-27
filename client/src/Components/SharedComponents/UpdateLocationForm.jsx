@@ -70,7 +70,6 @@ export default function UpdateLocationForm(props) {
     if(navigator.geolocation){
       navigator.geolocation.getCurrentPosition(function(position){
         getCityAndCountry(position.coords.latitude, position.coords.longitude, (location) => {dispatch(updateCurrentLocation(location))});
-        // if(global_location.latLng.lat != null) props.getNearbyRestaurants(global_location.latLng)
         props.close();
       });
     }

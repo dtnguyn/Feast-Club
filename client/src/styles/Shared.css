@@ -1,3 +1,60 @@
-.toggle {
-    padding: 10px;
+.window-info-icon {
+    font-size: 2rem;
+    color: #eb8242;
+    margin: 20px;
+}
+
+.info-navbar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+    background: rgb(235,130,66);
+    background: linear-gradient(90deg, rgba(235,130,66,1) -37%, rgba(246,218,99,1) 100%);
+  }
+  
+  .navbar-icon {
+    margin-left: auto;
+  }
+  .logo-first-letter-big {
+    font-family: DancingScript-Bold;
+    font-size: 9rem;
+    display: inline;
+    color: #9d0b0b;
+}
+
+.logo-second-letter-big {
+    font-family: DancingScript-Bold;
+    font-size: 4.5rem;
+    color: #f6da63;
+    display: inline;
+}
+
+
+.logo-first-letter-medium {
+    font-family: DancingScript-Bold;
+    font-size: 4.5rem;
+    display: inline;
+    color: #9d0b0b;
+}
+
+.logo-second-letter-medium {
+    font-family: DancingScript-Bold;
+    font-size: 2rem;
+    color: #f6da63;
+    display: inline;
+}
+
+.logo-first-letter-small {
+    font-family: DancingScript-Bold;
+    font-size: 2.5rem;
+    display: inline;
+    color: #9d0b0b;
+}
+
+.logo-second-letter-small {
+    font-family: DancingScript-Bold;
+    font-size: 1rem;
+    color: #f6da63;
+    display: inline;
 }

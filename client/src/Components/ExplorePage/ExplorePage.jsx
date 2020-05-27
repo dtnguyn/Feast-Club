@@ -1,16 +1,19 @@
 import React, {useState, useEffect, useReducer} from 'react';
 
 import InfoNavbar from '../SharedComponents/InfoNavbar'
-import { updateCurrentLocation } from "../../actions";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import axios from 'axios';
 import Fab from '@material-ui/core/Fab';
 import EditIcon from '@material-ui/icons/Edit';
+import NavigationIcon from '@material-ui/icons/Navigation';
 import { orange} from '@material-ui/core/colors';
 import ComposeDialog from "./ComposeDialog"
 import BlogPost from "./BlogPost"
 import LinearProgress from '@material-ui/core/LinearProgress';
-import ConfirmDialog from "../SharedComponents/ConfirmDialog"
+import ConfirmDialog from "../SharedComponents/ConfirmDialog";
+import SearchBar from "../SharedComponents/SearchBar";
+import UpdateLocationForm from "../SharedComponents/UpdateLocationForm"
+
 
 import '../../styles/Explore.css'
 
@@ -35,14 +38,20 @@ function ExplorePage(){
         blogContent: ''
     })
 
+    const [openLocationForm, setOpenLocationForm] = useState(false);
 
-    const style = {
+    const composeIconStyle = {
         margin: 0,
         top: 'auto',
         right: 20,
         bottom: 20,
         left: 'auto',
         position: 'fixed',
+        backgroundColor: orange[100]
+    };
+
+    const changeLocationIconStyle = {
+        marginTop: '20px',
         backgroundColor: orange[100]
     };
     console.log("City: " + global_location.lat);
@@ -157,14 +166,18 @@ function ExplorePage(){
 
     useEffect(() => {
         getBlogs();
-    }, [])
+    }, [global_location])
     return <div>
         <InfoNavbar/>
         {loading ? <LinearProgress color="secondary" /> : null}
         <div className="explore-page">
-            
             <img className="city-img" src={cityImage}/>
-            <h2 className="explore-title">See what other people eat in <br/> {global_location.city} city</h2>
+            <h2 className="explore-title">See what other people eat in <br/> {global_location.city}</h2>
+            <SearchBar placeholder="Search posts..."/>
+            <Fab onClick={() => setOpenLocationForm(true)} variant="extended" size="md"  style={changeLocationIconStyle}>
+                <NavigationIcon className="change-location-icon"/>
+                Change Location 
+            </Fab>
             {blogs.map(blog => {
                 return <BlogPost
                     blog={blog}
@@ -178,6 +191,7 @@ function ExplorePage(){
                     content={blog.content}
                     hearts={blog.hearts ? blog.hearts : 0}
                     isHearted={blog.is_hearted == 1}
+                    comments={blog.comments ? blog.comments : 0}
                     requestDeleteBlog={() => {
                         setFocusBlog({...focusBlog, blogID: blog.id});
                         setDeleteDialog(true)
@@ -195,7 +209,7 @@ function ExplorePage(){
                 />
             })}
             
-            <Fab onClick={() => setOpenCompose(true)} className="fab" style={style}  aria-label="edit">
+            <Fab onClick={() => setOpenCompose(true)} className="fab" style={composeIconStyle}  aria-label="edit">
                 <EditIcon className="compose-icon" />
             </Fab>
             <ComposeDialog 
@@ -215,7 +229,11 @@ function ExplorePage(){
                 confirmedAction={() => deleteBlog(focusBlog.blogID)}
             />
         </div>
-        
+        {openLocationForm && <UpdateLocationForm
+            open={openLocationForm}
+            close={() => setOpenLocationForm(false)}
+            getNearbyRestaurants={getBlogs}
+          />}
     </div>
 }
 

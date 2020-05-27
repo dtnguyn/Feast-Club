@@ -1,19 +1,20 @@
 import React from 'react';
 import Dropdown from "react-bootstrap/Dropdown";
-import "../../styles/Explore.css"
+import "../../styles/Explore.css";
+import { useSelector } from "react-redux";
 
 const BlogHeader = (props) => {
+    const global_user = useSelector(state => state.currentUser);
     return(
         <div className="compose-header">
             <img src="/default-user-icon.svg" style={{width: "60px", height: "60px"}} />
             <p className="compose-author">{props.authorName}</p>
-            <Dropdown className="toggle">
-                <Dropdown.Toggle variant="info" size="sm"  />
-                <Dropdown.Menu>
-                    <Dropdown.Item onClick={props.triggerEditDialog}>Edit</Dropdown.Item>
-                    <Dropdown.Item onClick={props.requestDeleteBlog}>Delete</Dropdown.Item>
-                </Dropdown.Menu>
-            </Dropdown>
+            {global_user.id == props.userID 
+            ? <div>
+                <img src="/delete_icon.svg" className="small-button press-button" onClick={props.requestDeleteBlog}/>
+                <img src="/edit_icon.svg" className="small-button press-button" onClick={props.triggerEditDialog}/>
+            </div>
+            : null}  
             <p className="compose-date">{props.date}</p>
         </div>
     );

@@ -56,17 +56,6 @@
 }
 
 
-.info-navbar {
-  background: rgb(235,130,66);
-  background: linear-gradient(90deg, rgba(235,130,66,1) -37%, rgba(246,218,99,1) 100%);
-}
-
-.navbar-icon {
-  position: absolute;
-  right: 5%;
-
-}
-
 .price_level_icon{
   font-family: BalooBhai-Regular;
   margin: 50px 0 30px 0;

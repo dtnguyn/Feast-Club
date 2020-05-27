@@ -39,22 +39,31 @@ const BlogDetailPage = (props) => {
             .then((response) => {
                 if(response.data){
                     setHeart(false);
-                    setSocialCount({...socialCount, hearts: socialCount.hearts - 1})
-                };
+                    setSocialCount({...socialCount, hearts: socialCount.hearts - 1 })
+                }; 
             })
     }
 
     const addComment = (info) => {
+        if(info.content === '') return;
         axios.post("http://localhost:5000/comments", info, {withCredentials: true})
             .then((response) => {
                 if(response.data){
                     getComments();
+                    setSocialCount({...socialCount, comments: (socialCount.comments + 1) })
                 }
             })
     }
 
     const getComments = () => {
-        axios.get("http://localhost:5000/comments", {withCredentials: true})
+        console.log(blog);
+        axios.get("http://localhost:5000/comments", 
+        {
+            withCredentials: true,
+            params: {
+                blogID: blog.id
+            }
+        })
             .then((response) => {
                 setComments(response.data);
                 setCommentContent("")
@@ -73,6 +82,7 @@ const BlogDetailPage = (props) => {
             .then((response) => {
                 if(response.data){
                     getComments();
+                    setSocialCount({...socialCount, comments: socialCount.comments - 1 })
                 }
             })
     }
@@ -80,6 +90,7 @@ const BlogDetailPage = (props) => {
     useEffect(() => {
         getComments();
     }, [])
+
 
     return (
         <div className="blog-detail-page">
@@ -115,7 +126,7 @@ const BlogDetailPage = (props) => {
                         rows="2" placeholder="Add a comment..." 
                     />
                     <img 
-                        className="post-comment-button" 
+                        className="post-comment-button press-button" 
                         src="/post_comment_icon.svg" 
                         onClick={() => {
                             console.log(blog);

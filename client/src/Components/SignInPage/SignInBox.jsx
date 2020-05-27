@@ -59,15 +59,15 @@ function SignInBox(){
             .then((response) => {
                 const logInStatus = response.data.logInStatus;
                 const messageSendBack = response.data.message;
-                // const mainPageData = {
-                //     location: response.data.provideLocation,
-                //     nearbyRestaurants: response.data.nearbyRestaurants
-                // }
-                // console.log(mainPageData);
+                const mainPageData = {
+                    location: response.data.provideLocation,
+                    nearbyRestaurants: response.data.nearbyRestaurants
+                }
+                console.log(mainPageData);
                 if(logInStatus){
                     console.log(response.data.userInfo);
                     dispatch(signIn());
-                    dispatch(currentUserSignIn(response.data.userInfo));
+                    
                     history.push("/mainPage");
                 } else{
                     setMessage(messageSendBack);

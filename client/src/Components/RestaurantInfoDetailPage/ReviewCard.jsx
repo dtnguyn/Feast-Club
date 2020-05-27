@@ -20,7 +20,7 @@ function ReviewCard(props){
                <p id="review-author">{props.author}</p>
                <p id="review-content">{props.content}</p> 
                {props.type == "comment" && props.userID == global_user.id 
-               ? <img onClick={() => props.deleteComment({commentID: props.commentID})} class="delete-button press-button" src="/delete_icon.svg"/>
+               ? <img onClick={() => props.deleteComment({commentID: props.commentID})} class="small-button press-button" src="/delete_icon.svg"/>
                : null}
 
             </div>

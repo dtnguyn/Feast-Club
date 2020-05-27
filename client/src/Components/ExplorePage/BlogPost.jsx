@@ -2,17 +2,16 @@ import React, {useState, useEffect} from 'react';
 import '../../styles/Explore.css';
 
 import axios from 'axios';
-import { useSelector } from "react-redux";
+
 import { useHistory } from "react-router-dom";
 import BlogHeader from "./BlogHeader";
 import BlogBody from  "./BlogBody";
 import BlogFooter from "./BlogFooter";
 
 const BlogPost = (props) => {
-
     const [heart, setHeart] = useState(false);
     const [socialCount, setSocialCount] = useState({
-        hearts: props.hearts,
+        hearts: 0,
         comments: 0
     })
     const history = useHistory();
@@ -46,21 +45,28 @@ const BlogPost = (props) => {
     }
 
     const goToDetailPage = () => {
+        console.log(props.blog);
         history.push("/bloginfo", {
-            blog: props.blog,
+            blog: props.blog,   
             heart: heart,
             socialCount: socialCount,
         });
     }
 
     useEffect(() => {
+        setSocialCount({
+            hearts: props.hearts,
+            comments: props.comments
+        })
         if(props.isHearted) setHeart(true);
-    }, [])
-
+        else setHeart(false);
+    }, [props.blog]);
+    
 
     return (
         <div className="blog-post">
             <BlogHeader 
+                userID={props.blog.user_id}
                 authorName={props.blog.author_name}
                 date={props.blog.date}
                 triggerEditDialog={props.triggerEditDialog}

@@ -1,8 +1,8 @@
 import React from 'react';
 
-import  '../../styles/RestaurantInfoDetail.css';
+import  '../../styles/Shared.css';
 import {Navbar, Nav} from 'react-bootstrap';
-import Logo from './LogoSmall'
+import Logo from './Logo'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGlobeAsia } from '@fortawesome/free-solid-svg-icons';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
@@ -12,15 +12,15 @@ function InfoNavbar(){
     return(
         <Navbar className="info-navbar">
             <Navbar.Brand >
-                <div className="navbar-icon">
+                <Logo 
+                    size="sm"
+                />
+            </Navbar.Brand>
+            <div className="navbar-icon">
                     <FontAwesomeIcon className="window-info-icon" icon={faGlobeAsia}/>
                     <FontAwesomeIcon className="window-info-icon" icon={faUser}/>
                     <FontAwesomeIcon id="compass" className="window-info-icon" icon={faCompass}/>
                 </div>
-                <Logo className="navbar-logo"/>
-                
-                
-            </Navbar.Brand>
         </Navbar>
     );
 }

@@ -15,11 +15,16 @@
 .explore-title {
     font-family: BalooBhai-Regular;
     margin-top: 50px;
+    margin-bottom: 20px;
     font-size: 2.5rem;
     color: #eb8242;
     border-width: 3rem;
     border-color: violet;
     text-align: center;
+}
+
+.change-location-icon{
+    color: #eb8242;
 }
 
 
@@ -28,10 +33,12 @@
 }
 
 .compose-dialog {
+    max-width: auto;
     height: 80vh;
-    overflow: hidden;
     align-self: center;
+    overflow-x: hidden;
 }
+
 
 .compose-header {
     padding: 10px;
@@ -45,6 +52,7 @@
     font-size: 1.5rem;
     margin-left: 10px;
     margin-top: 10px;
+    margin-right: 10px;
     color: #545454;
 }
 
@@ -110,7 +118,10 @@
     flex-direction: row;
     align-items: center;
     white-space: pre-wrap;
-    
+}
+
+#blog-text-content {
+    word-break: break-all;
 }
 
 .icon-for-content{
@@ -164,3 +175,20 @@
     margin-left: 10px;
     margin-bottom: 4px;
 }
+
+.preview-container{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.preview { 
+    max-width: 500px;
+    height: auto;
+    display: block;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: auto;
+    margin-right: auto;
+}
+

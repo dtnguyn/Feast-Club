@@ -8,7 +8,7 @@ import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { faCompass } from '@fortawesome/free-solid-svg-icons';
 import SearchBar from "./WindowInfoSearchBar"
 import InfoBox from "./InfoBox"
-import UpdateLocationForm from "./UpdateLocationForm";
+import UpdateLocationForm from "../SharedComponents/UpdateLocationForm";
 import AlertDialog from '../SharedComponents/AlertDialog'
 import axios from 'axios';
 import { useSelector } from "react-redux";
