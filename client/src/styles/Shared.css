@@ -58,3 +58,12 @@
     color: #f6da63;
     display: inline;
 }
+
+
+/** Image Slide **/ 
+
+.image-container {
+    max-width: 400px !important;
+    max-height: 400px;
+}
+

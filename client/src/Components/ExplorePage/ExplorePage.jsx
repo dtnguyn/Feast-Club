@@ -111,8 +111,18 @@ function ExplorePage(){
             })
     }
 
-    const postBlog = (restaurant, blogContent, callback) => {
-        axios.post("http://localhost:5000/blogPosts", {restaurant, blogContent}, {withCredentials: true})
+    const postBlog = (restaurant, blogContent, files, callback) => {
+        let data = new FormData();
+        data.append('file', files[0], files[0].fileName);
+
+
+        axios.post("http://localhost:5000/blogPosts", data, {
+            headers: {
+              'accept': 'application/json',
+              'Accept-Language': 'en-US,en;q=0.8',
+              'Content-Type': `multipart/form-data; boundary=${data._boundary}`
+            }
+        })
             .then((response) => {
                 if(response.data){
                     getBlogs();

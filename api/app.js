@@ -19,6 +19,29 @@ const unirest = require("unirest");
 const util = require('util');
 const testRestaurant = require('./foundRestaurant');
 const nearbyrestaurants = require('./nearbyRestaurants');
+const Multer = require('multer');
+const {Storage} = require('@google-cloud/storage');
+const path = require('path');
+
+// Instantiate a storage client
+const storage = new Storage({
+    projectId: "feast-club",
+    keyFilename: path.join(__dirname, "./feast-club-0c7e5bcc3a76.json")
+});
+
+//console.log(bucket)
+
+const multer = Multer({
+    storage: Multer.memoryStorage(),
+    limits: {
+      fileSize: 5 * 1024 * 1024, 
+    },
+  });
+
+  
+// A bucket is a container for objects (files).
+const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
+
 
 //To hast password before save in database
 const bcrypt = require('bcrypt');
@@ -32,6 +55,7 @@ var logInDataSendBack = {
     id: "",
     message: ""
 };
+
 
 //middleware
 
@@ -679,6 +703,27 @@ async function deleteComment(commentID, callback){
     }
 }
 
+function uploadImage(file, next){
+    // Create a new blob in the bucket and upload the file data.
+    const blob = bucket.file(file.originalname);
+    const blobStream = blob.createWriteStream({
+      resumable: false
+    });
+    
+    blobStream.on('error', (err) => {
+    console.log("got here", err)
+      next(err);
+    });
+    
+    blobStream.on('finish', () => {
+      // The public URL can be used to directly access the file via HTTP.
+      console.log(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
+      
+    });
+  
+    blobStream.end(file.buffer);
+}
+
 //Routes
 
 /* GET routes */
@@ -817,19 +862,51 @@ app.post('/savelocation', (req,res) => {
     res.send(addLocation(id, lat, lng, city, state, country));
 })
 
-app.post('/blogPosts', (req,res) => {
-    if(req.isAuthenticated()){
-        console.log(req.body)
-        const restaurantID = req.body.restaurant.id;
-        const userID = req.session.passport.user.id;
-        const authorName = req.session.passport.user.name;
-        const restaurantName = req.body.restaurant.name;
-        const restaurantAdress = req.body.restaurant.address;
-        const content = req.body.blogContent;
-        const city = req.body.restaurant.city;
-        const country = req.body.restaurant.country;
-        addBlogs(restaurantID, userID, authorName, restaurantName, restaurantAdress,content, city, country, res);
-    } 
+app.post('/blogPosts', multer.single('file'), (req, res, next) => {
+    console.log(req.file)
+    
+    // const bucketName = "feast-club"
+    // const bucket = storage.bucket(bucketName);
+    // const gcsFileName = `${Date.now()}-${req.file.originalname}`;
+    // const file = bucket.file(gcsFileName);
+  
+    // const stream = file.createWriteStream({
+    //   metadata: {
+    //     contentType: req.file.mimetype,
+    //   },
+    // });
+  
+    // stream.on('error', (err) => {
+    //   req.file.cloudStorageError = err;
+    //   next(err);
+    // });
+  
+    // stream.on('finish', () => {
+    //   req.file.cloudStorageObject = gcsFileName;
+  
+    //   return file.makePublic()
+    //     .then(() => {
+    //       req.file.gcsUrl = gcsHelpers.getPublicUrl(bucketName, gcsFileName);
+    //       next();
+    //     });
+    // });
+  
+    // stream.end(req.file.buffer);
+    
+    
+    uploadImage(req.file, next);
+    // if(req.isAuthenticated()){
+    //     console.log(req.body)
+    //     const restaurantID = req.body.restaurant.id;
+    //     const userID = req.session.passport.user.id;
+    //     const authorName = req.session.passport.user.name;
+    //     const restaurantName = req.body.restaurant.name;
+    //     const restaurantAdress = req.body.restaurant.address;
+    //     const content = req.body.blogContent;
+    //     const city = req.body.restaurant.city;
+    //     const country = req.body.restaurant.country;
+    //     addBlogs(restaurantID, userID, authorName, restaurantName, restaurantAdress,content, city, country, res);
+    // } 
 })
 
 app.post('/love', (req, res) => {
@@ -849,6 +926,15 @@ app.post('/comments', (req, res) => {
         })
     }
 })
+
+app.post('/upload', multer.single('file'), (req, res, next) => {
+    if (!req.file) {
+      res.status(400).send('No file uploaded.');
+      return;
+    }
+  
+    
+  });
 
 
 
