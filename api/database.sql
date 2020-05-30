@@ -104,7 +104,20 @@ CREATE TABLE user_blog_comments(
    FOREIGN KEY (user_id) REFERENCES user_ids (id)
 );
 
+CREATE TABLE user_blog_images(
+   id SERIAL PRIMARY KEY,
+   image_url varchar,
+   blog_id varchar NOT NULL,
+   FOREIGN KEY (blog_id) REFERENCES user_blogs (id) ON DELETE CASCADE
+)
 
+
+
+
+/* Queries */
+
+
+/*GET Blogs*/
 SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM
 (SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted 
 FROM user_blogs, users 

@@ -444,17 +444,20 @@ function addLocation(id, lat, lng, city, state, country){
     }
 }
 
-async function addBlogs(restaurant_id, user_id, author_name, name, address, content, city, country, response){
+async function addBlogs(restaurant_id, user_id, author_name, name, address, content, city, country, files, next, callBack){
     try{
         console.log("-----------------------------");
         console.log("Adding Blogs to database...");
         const id = await uuid();
         await pool.query("INSERT INTO user_blogs VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [id, restaurant_id, user_id, author_name, name, address, content, new Date()]);
         await pool.query("INSERT INTO user_blog_location VALUES($1, $2, $3)", [id, city, country]);
-        response.send(true);
+        if (files.length != 0) {
+            uploadImages(id, files, next, callBack)
+        }
     } catch (e){
         console.log(e);
-        client.query("ROLLBACK");
+        callBack(false)
+        pool.query("ROLLBACK");
     } finally {
         console.log("Finish Adding blogs to database");
         console.log("-----------------------------");
@@ -703,25 +706,68 @@ async function deleteComment(commentID, callback){
     }
 }
 
-function uploadImage(file, next){
-    // Create a new blob in the bucket and upload the file data.
-    const blob = bucket.file(file.originalname);
-    const blobStream = blob.createWriteStream({
-      resumable: false
+function uploadImages(id, files, next, callback){
+    var imageURLs = [];
+    const upload = new Promise((resolve, reject) => {
+        files.forEach((file, i) => {
+            // Create a new blob in the bucket and upload the file data.
+            const blob = bucket.file(file.originalname);
+            const blobStream = blob.createWriteStream({
+                resumable: false
+            });
+            
+            blobStream.on('error', (err) => {
+                next(err);
+            });
+    
+            blobStream.on('finish', async () => {
+                // The public URL can be used to directly access the file via HTTP.
+                console.log(`https://storage.googleapis.com/${bucket.name}/${blob.name}`, i);
+                
+                
+                await uploadImageToDatabase(id, `https://storage.googleapis.com/${bucket.name}/${blob.name}`, (result) => {
+                    if(result) {
+                        imageURLs.push(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
+                        if (imageURLs.length === files.length) resolve();
+                    } else {
+                        reject();
+                    }
+                    
+                })
+            });
+        
+            blobStream.end(file.buffer);
+        })
+    });
+   
+    upload.then(() => {
+        console.log('All done!');
+        callback(true);
     });
     
-    blobStream.on('error', (err) => {
-    console.log("got here", err)
-      next(err);
-    });
-    
-    blobStream.on('finish', () => {
-      // The public URL can be used to directly access the file via HTTP.
-      console.log(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
-      
-    });
-  
-    blobStream.end(file.buffer);
+}
+
+async function uploadImageToDatabase(id, url, callback){
+    try {
+        console.log("--------------------------");
+        console.log("Adding image url to database");
+ 
+        const result = await pool.query("INSERT INTO user_blog_images (blog_id, image_url) VALUES($1, $2)", [id, url])
+        if(result.rowCount == 1){
+            console.log("Successful!");
+            callback(true);
+        } else {
+            console.log("Fail to add images");
+            callback(false);
+        }
+    } catch(error) {
+        console.log("Fail to add comment!");
+        console.log(error);
+        callback(false);
+    } finally {
+        console.log("Finish adding image to database");
+        console.log("----------------------------------")
+    }
 }
 
 //Routes
@@ -862,51 +908,27 @@ app.post('/savelocation', (req,res) => {
     res.send(addLocation(id, lat, lng, city, state, country));
 })
 
-app.post('/blogPosts', multer.single('file'), (req, res, next) => {
-    console.log(req.file)
-    
-    // const bucketName = "feast-club"
-    // const bucket = storage.bucket(bucketName);
-    // const gcsFileName = `${Date.now()}-${req.file.originalname}`;
-    // const file = bucket.file(gcsFileName);
-  
-    // const stream = file.createWriteStream({
-    //   metadata: {
-    //     contentType: req.file.mimetype,
-    //   },
-    // });
-  
-    // stream.on('error', (err) => {
-    //   req.file.cloudStorageError = err;
-    //   next(err);
-    // });
-  
-    // stream.on('finish', () => {
-    //   req.file.cloudStorageObject = gcsFileName;
-  
-    //   return file.makePublic()
-    //     .then(() => {
-    //       req.file.gcsUrl = gcsHelpers.getPublicUrl(bucketName, gcsFileName);
-    //       next();
-    //     });
-    // });
-  
-    // stream.end(req.file.buffer);
-    
-    
-    uploadImage(req.file, next);
-    // if(req.isAuthenticated()){
-    //     console.log(req.body)
-    //     const restaurantID = req.body.restaurant.id;
-    //     const userID = req.session.passport.user.id;
-    //     const authorName = req.session.passport.user.name;
-    //     const restaurantName = req.body.restaurant.name;
-    //     const restaurantAdress = req.body.restaurant.address;
-    //     const content = req.body.blogContent;
-    //     const city = req.body.restaurant.city;
-    //     const country = req.body.restaurant.country;
-    //     addBlogs(restaurantID, userID, authorName, restaurantName, restaurantAdress,content, city, country, res);
-    // } 
+app.post('/blogPosts', multer.array('imgCollection'), (req, res, next) => {
+    console.log(util.inspect(req.body, {showHidden: false, depth: null}));
+    console.log(util.inspect(req.query.restaurantID, {showHidden: false, depth: null}));
+    console.log(req.files);
+    if(req.isAuthenticated()){
+        const restaurantID = req.query.restaurantID;
+        const userID = req.session.passport.user.id;
+        const authorName = req.session.passport.user.name;
+        const restaurantName = req.query.restaurantName;
+        const restaurantAdress = req.query.restaurantAddress;
+        const content = req.query.blogContent;
+        const city = req.query.city;
+        const country = req.query.country;
+
+        addBlogs(restaurantID, userID, authorName, restaurantName, restaurantAdress,content, city, country, req.files, next, (result) =>{
+            res.send(result);
+        });
+        // addBlogs(null, null, null, null, null, null, null, null, req.files, next, (result) =>{
+        //     res.send(result);
+        // });
+    } 
 })
 
 app.post('/love', (req, res) => {
@@ -926,15 +948,6 @@ app.post('/comments', (req, res) => {
         })
     }
 })
-
-app.post('/upload', multer.single('file'), (req, res, next) => {
-    if (!req.file) {
-      res.status(400).send('No file uploaded.');
-      return;
-    }
-  
-    
-  });
 
 
 

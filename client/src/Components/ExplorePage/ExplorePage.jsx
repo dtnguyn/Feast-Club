@@ -112,19 +112,36 @@ function ExplorePage(){
     }
 
     const postBlog = (restaurant, blogContent, files, callback) => {
-        let data = new FormData();
-        data.append('file', files[0], files[0].fileName);
+        var formData = new FormData();
+        for (const key of Object.keys(files)) {
+            formData.append('imgCollection', files[key])
+        }
 
+        // let images = [];
+        // let data = new FormData();
+        // data.append('file', files[0], files[0].fileName);
+        // images.push(data);
 
-        axios.post("http://localhost:5000/blogPosts", data, {
+        axios.post("http://localhost:5000/blogPosts", formData ,  {
             headers: {
               'accept': 'application/json',
               'Accept-Language': 'en-US,en;q=0.8',
-              'Content-Type': `multipart/form-data; boundary=${data._boundary}`
+              'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
+            },
+            withCredentials: true,
+            params: {
+                restaurantID: restaurant.id,
+                restaurantName: restaurant.name,
+                restaurantAddress: restaurant.address,
+                city: restaurant.city,
+                country: restaurant.country,
+                blogContent
             }
+
         })
             .then((response) => {
                 if(response.data){
+                    if(files != 0)
                     getBlogs();
                     callback(true);
                     setOpenCompose(false)
