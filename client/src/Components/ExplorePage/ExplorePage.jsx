@@ -117,11 +117,6 @@ function ExplorePage(){
             formData.append('imgCollection', files[key])
         }
 
-        // let images = [];
-        // let data = new FormData();
-        // data.append('file', files[0], files[0].fileName);
-        // images.push(data);
-
         axios.post("http://localhost:5000/blogPosts", formData ,  {
             headers: {
               'accept': 'application/json',

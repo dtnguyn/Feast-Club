@@ -77,7 +77,15 @@ const ComposeDialog = (props) => {
                                 <Photo className="compose-photo-icon" />
                             </Fab>
                             <input type="file"  accept="image/*" hidden id="selectImage" onChange={handleChange} multiple="multiple"/>
-                            <Fab onClick={() => props.handleClose()} className="fab" aria-label="edit" style={{backgroundColor: red[100], margin: 20}}>
+                            <Fab 
+                                onClick={() => {
+                                    props.handleClose();
+                                    setFiles([]);
+                                    setSources([]);
+                                }} 
+                                className="fab" 
+                                aria-label="edit" 
+                                style={{backgroundColor: red[100], margin: 20}}>
                                 <Cancel className="compose-cancel-icon" />
                             </Fab>
                             {checkButtonStatus 

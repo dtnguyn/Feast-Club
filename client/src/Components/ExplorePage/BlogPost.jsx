@@ -76,6 +76,7 @@ const BlogPost = (props) => {
                 restaurantName={props.blog.restaurant_name}
                 address={props.blog.restaurant_address}
                 content={props.blog.content}
+                images={props.blog.images}
             />
             <BlogFooter 
                 blogID={props.blog.id}

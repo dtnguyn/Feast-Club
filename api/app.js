@@ -470,7 +470,7 @@ async function getBlogPosts(city, country, userID,callBack){
         console.log("Fetching blogs from database...");
         const table = await pool.query
         (
-            "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
+            "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
             "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
             "FROM user_blogs, users " +
             "WHERE user_blogs.user_id = users.id " +
@@ -509,10 +509,24 @@ async function getBlogPosts(city, country, userID,callBack){
             "GROUP BY blog_id " +
             ") as comments ON comments.blog_id = id  " +
 
+            "LEFT JOIN ( " +
+            "    SELECT blog_id, array_agg(image_url) AS images " +
+            "    FROM user_blog_images " +
+            "    GROUP BY blog_id " +
+            "    ) as images ON images.blog_id = id " +
+
             "WHERE city = $2 AND country = $3 " +
             "ORDER BY date_posted DESC "
 
         , [userID, city, country]);
+
+        // const test = await pool.query
+        // (
+        //     "SELECT blog_id, array_agg(image_url) AS image_urls " +
+        //     "FROM user_blog_images " +
+        //     "GROUP BY blog_id "
+        // )
+        // console.log(test.rows);
         callBack(table.rows);
     } catch (e) {
         console.log(e);
