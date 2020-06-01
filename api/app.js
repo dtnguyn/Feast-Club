@@ -451,9 +451,7 @@ async function addBlogs(restaurant_id, user_id, author_name, name, address, cont
         const id = await uuid();
         await pool.query("INSERT INTO user_blogs VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [id, restaurant_id, user_id, author_name, name, address, content, new Date()]);
         await pool.query("INSERT INTO user_blog_location VALUES($1, $2, $3)", [id, city, country]);
-        if (files.length != 0) {
-            uploadImages(id, files, next, callBack)
-        }
+        uploadImages(id, files, next, callBack);
     } catch (e){
         console.log(e);
         callBack(false)
@@ -519,20 +517,56 @@ async function getBlogPosts(city, country, userID,callBack){
             "ORDER BY date_posted DESC "
 
         , [userID, city, country]);
-
-        // const test = await pool.query
-        // (
-        //     "SELECT blog_id, array_agg(image_url) AS image_urls " +
-        //     "FROM user_blog_images " +
-        //     "GROUP BY blog_id "
-        // )
-        // console.log(test.rows);
         callBack(table.rows);
     } catch (e) {
         console.log(e);
     } finally {
         console.log("Finish fetching blogs from database");
         console.log("-----------------------------------");
+    }
+}
+
+async function editBlogPost(blogID, restaurantID, restaurantName, restaurantAddress, blogContent, city, country, files, next, callback){
+    try {
+        console.log("-----------------------------")
+        console.log("Editing blog post From database...");
+        const editBlogResult = await pool.query
+        (
+            "UPDATE user_blogs SET " +
+            "restaurant_id = $1, " +
+            "restaurant_name = $2, " +
+            "restaurant_address = $3, " + 
+            "content = $4 " +
+            "WHERE id = $5 "
+        , [restaurantID, restaurantName, restaurantAddress, blogContent, blogID]);
+        const editBlogLocationResult = await pool.query
+        (
+            "UPDATE user_blog_location SET " +
+            "city = $1, " +
+            "country = $2 " + 
+            "WHERE blog_id = $3 "
+        , [city, country, blogID]);
+        
+        uploadImages(blogID, files, next, (result) => {
+            if(result && editBlogResult.rowCount == 1 && editBlogLocationResult.rowCount == 1){
+                console.log("Successfully edit blog post!")
+                callback(true);
+            } else {
+                throw "Something went wrong when editting blog post!";
+            }
+        })
+        
+        
+        
+
+    } catch(error){
+        console.log("Fail! to edit post");
+        console.log(error);
+        callback(false);
+        pool.query("ROLLBACK");
+    } finally {
+        console.log("Finishing Editing blog post From database...");
+        console.log("-----------------------------");
     }
 }
 
@@ -604,44 +638,6 @@ async function deleteHeart(blogID, userID, callback){
         console.log("-----------------------------");
     }
 }
-
-async function editBlogPost(blogID, restaurantID, restaurantName, restaurantAddress, blogContent, city, country, callback){
-    try {
-        console.log("-----------------------------")
-        console.log("Editing blog post From database...");
-        const editBlogResult = await pool.query
-        (
-            "UPDATE user_blogs SET " +
-            "restaurant_id = $1, " +
-            "restaurant_name = $2, " +
-            "restaurant_address = $3, " + 
-            "content = $4 " +
-            "WHERE id = $5 "
-        , [restaurantID, restaurantName, restaurantAddress, blogContent, blogID]);
-        const editBlogLocationResult = await pool.query
-        (
-            "UPDATE user_blog_location SET " +
-            "city = $1, " +
-            "country = $2 " + 
-            "WHERE blog_id = $3 "
-        , [city, country, blogID]);
-        
-        if(editBlogResult.rowCount == 1 && editBlogLocationResult.rowCount == 1){
-            console.log("Successfully edit blog post!")
-            callback(true);
-        } else throw "Something went wrong when editting blog post!";
-
-    } catch(error){
-        console.log("Fail! to edit post");
-        console.log(error);
-        callback(false);
-        pool.query("ROLLBACK");
-    } finally {
-        console.log("Finishing Editing blog post From database...");
-        console.log("-----------------------------");
-    }
-}
-
 
 async function addComment(blogID, userID, authorName, content, callback){
     try {
@@ -721,6 +717,10 @@ async function deleteComment(commentID, callback){
 }
 
 function uploadImages(id, files, next, callback){
+    if (files.length == 0){
+        callback(true);
+        return;
+    }
     var imageURLs = [];
     const upload = new Promise((resolve, reject) => {
         files.forEach((file, i) => {
@@ -737,17 +737,21 @@ function uploadImages(id, files, next, callback){
             blobStream.on('finish', async () => {
                 // The public URL can be used to directly access the file via HTTP.
                 console.log(`https://storage.googleapis.com/${bucket.name}/${blob.name}`, i);
-                
-                
-                await uploadImageToDatabase(id, `https://storage.googleapis.com/${bucket.name}/${blob.name}`, (result) => {
+                try{
+                    await uploadImageToDatabase(id, `https://storage.googleapis.com/${bucket.name}/${blob.name}`, (result) => {
                     if(result) {
                         imageURLs.push(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
                         if (imageURLs.length === files.length) resolve();
                     } else {
                         reject();
                     }
-                    
                 })
+                } catch(err){
+                    console.log(err);
+                    reject();
+                }
+                
+                
             });
         
             blobStream.end(file.buffer);
@@ -923,9 +927,6 @@ app.post('/savelocation', (req,res) => {
 })
 
 app.post('/blogPosts', multer.array('imgCollection'), (req, res, next) => {
-    console.log(util.inspect(req.body, {showHidden: false, depth: null}));
-    console.log(util.inspect(req.query.restaurantID, {showHidden: false, depth: null}));
-    console.log(req.files);
     if(req.isAuthenticated()){
         const restaurantID = req.query.restaurantID;
         const userID = req.session.passport.user.id;
@@ -967,17 +968,18 @@ app.post('/comments', (req, res) => {
 
 //Update Routes
 
-app.patch('/blogPosts', (req, res) => {
+app.patch('/blogPosts', multer.array('imgCollection'),(req, res, next) => {
+    console.log("editing", req.files);
     if(req.isAuthenticated()){
         console.log(req.body);
-        const blogID = req.body.blogID;
-        const restaurantID = req.body.restaurant.id
-        const restaurantName = req.body.restaurant.name;
-        const restaurantAdress = req.body.restaurant.address;
-        const content = req.body.blogContent;
-        const city = req.body.restaurant.city;
-        const country = req.body.restaurant.country;
-        editBlogPost(blogID, restaurantID ,restaurantName, restaurantAdress, content, city, country, (result) => res.send(result));
+        const blogID = req.query.blogID;
+        const restaurantID = req.query.restaurantID
+        const restaurantName = req.query.restaurantName;
+        const restaurantAdress = req.query.restaurantAddress;
+        const content = req.query.blogContent;
+        const city = req.query.city;
+        const country = req.query.country;
+        editBlogPost(blogID, restaurantID ,restaurantName, restaurantAdress, content, city, country, req.files, next, (result) => res.send(result));
     }
 })
 

@@ -35,7 +35,8 @@ function ExplorePage(){
     const [focusBlog, setFocusBlog] = useState({
         blogID: '',
         restaurant: '',
-        blogContent: ''
+        blogContent: '',
+        images: []
     })
 
     const [openLocationForm, setOpenLocationForm] = useState(false);
@@ -60,7 +61,8 @@ function ExplorePage(){
         setFocusBlog({
             blogID: '',
             restaurant: '',
-            blogContent: ''
+            blogContent: '',
+            images:[]
         })
     }
 
@@ -136,7 +138,6 @@ function ExplorePage(){
         })
             .then((response) => {
                 if(response.data){
-                    if(files != 0)
                     getBlogs();
                     callback(true);
                     setOpenCompose(false)
@@ -165,9 +166,24 @@ function ExplorePage(){
     }
 
 
-    const editBlog = (restaurant, blogContent, callback) => {
-        axios.patch("http://localhost:5000/blogPosts", {blogID: focusBlog.blogID, restaurant, blogContent},{
+    const editBlog = (restaurant, blogContent, files, callback) => {
+        
+        var formData = new FormData();
+        for (const key of Object.keys(files)) {
+            formData.append('imgCollection', files[key])
+        }  
+
+        axios.patch("http://localhost:5000/blogPosts", formData,{
             withCredentials: true,
+            params: {
+                blogID: focusBlog.blogID,
+                restaurantID: restaurant.id,
+                restaurantName: restaurant.name,
+                restaurantAddress: restaurant.address,
+                city: restaurant.city,
+                country: restaurant.country,
+                blogContent
+            }
         })
             .then(response => {
                 if(response.data){
@@ -216,15 +232,14 @@ function ExplorePage(){
                     comments={blog.comments ? blog.comments : 0}
                     requestDeleteBlog={() => {
                         setFocusBlog({...focusBlog, blogID: blog.id});
-                        setDeleteDialog(true)
+                        setDeleteDialog(true);
                     }}
                     triggerEditDialog={() => {
-                        
                         setFocusBlog({
-                            ...focusBlog,
                             blogID: blog.id,
                             restaurant: blog.restaurant_name.concat(", ", blog.restaurant_address),
-                            blogContent: blog.content
+                            blogContent: blog.content,
+                            images: blog.images == null ? [] : blog.images
                         });
                         setOpenCompose(true);
                     }}

@@ -106,6 +106,7 @@ const BlogDetailPage = (props) => {
                         restaurantName={blog.restaurant_name}
                         address={blog.restaurant_address}
                         content={blog.content}
+                        images={blog.images}
                     />
                     <BlogFooter 
                         blogID={blog.id}

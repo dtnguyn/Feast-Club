@@ -116,16 +116,19 @@
 
 .content-item {
     margin-left: 20px;
+    margin-right: 20px;
     font-family: Montserrat-Light;
     font-size: 1.3rem;
     display: flex;
     flex-direction: row;
     align-items: center;
     white-space: pre-wrap;
+    
 }
 
 #blog-text-content {
-    word-break: break-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .icon-for-content{

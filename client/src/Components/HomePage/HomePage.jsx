@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {Link, Redirect, useHistory} from "react-router-dom"
-
+import ImageSlide from "../SharedComponents/ImageSlide"
 
 import axios from "axios";
 

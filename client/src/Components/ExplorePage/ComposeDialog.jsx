@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 import ImageSlide from '../SharedComponents/ImageSlide'
 import axios from 'axios';
 
+
 const ComposeDialog = (props) => {
     const userName = useSelector(state => state.currentUser.name);
     const [restaurant, setRestaurant] = useState(null);
@@ -20,25 +21,41 @@ const ComposeDialog = (props) => {
 
     const [files, setFiles] = useState([]);
 
-    const [sources, setSources] = useState([])
+    const [sources, setSources] = useState([]);
 
 
     const handleChange = (event) => {
         
-        setFiles(event.target.files);
         
-        console.log(event.target.files);
-        var array = [];
+        var newSources = [];
+        var newFiles = []
         for(let i = 0; i < event.target.files.length; i++){
-            array.push(URL.createObjectURL(event.target.files[i]))
+            newFiles.push(event.target.files[i]);
         }
-        setSources(array);
+        
+        console.log("files ", [...files, ...newFiles]);
+        for(let i = 0; i < newFiles.length; i++){
+            newSources.push(URL.createObjectURL(newFiles[i]))
+        }
+        console.log("sources ", [...sources, ...newSources]);
+        
+        setSources([...sources, ...newSources]);
+        setFiles([...files, ...newFiles]);
     
     }
 
     useEffect(() => {
-        setBlogContent(props.focusBlog.blogContent);
+        if(props.focusBlog != undefined){
+            setBlogContent(props.focusBlog.blogContent);
+            setSources(props.focusBlog.images)
+        }
     }, [props.focusBlog])
+
+    useEffect(() => {
+        if(props.open == false){
+            setFiles([]);
+        }
+    }, [props.open])
 
     useEffect(() => {
         if(restaurant != null && blogContent != ""){
@@ -53,8 +70,8 @@ const ComposeDialog = (props) => {
     return(
         <div className="compose-dialog-container">
             <Dialog maxWidth="lg" fullWidth={true} className="compose-dialog" open={props.open}>
-                <div className={"compose-dialog-content " +(files.length == 0 ? "" : "row")}>
-                    <div className={(files.length == 0 ? "col-12" : "col-7 compose-area")}>
+                <div className={"compose-dialog-content " +(sources.length == 0 ? "" : "row")}>
+                    <div className={(sources.length == 0 ? "col-12" : "col-7 compose-area")}>
                         <div className="compose-header">
                             <img src="/default-user-icon.svg" style={{width: "60px", height: "60px"}} />
                             <p className="compose-author">{userName}</p>
@@ -93,7 +110,7 @@ const ComposeDialog = (props) => {
                                 onClick={() => {
                                     if(props.focusBlog.blogID === ''){
                                         console.log("Posting");
-                                        props.handlePost(restaurant, blogContent, files,(result) => {
+                                        props.handlePost(restaurant, blogContent, files, (result) => {
                                             if(result){
                                                 setRestaurant(null);
                                                 setBlogContent('');
@@ -101,7 +118,7 @@ const ComposeDialog = (props) => {
                                         });
                                     } else {
                                         console.log("Editing");
-                                        props.handleEdit(restaurant, blogContent, (result) => {
+                                        props.handleEdit(restaurant, blogContent, files, (result) => {
                                             if(result){
                                                 setRestaurant(null);
                                                 setBlogContent('');
@@ -121,9 +138,9 @@ const ComposeDialog = (props) => {
                         </div>
                     </div>
                     {
-                        files.length != 0
+                        sources.length != 0
                         ? <div className="col-5 preview-container">
-                            <ImageSlide className="preview" images={sources}/>
+                            <ImageSlide className="preview" images={sources} size="sm"/>
                           </div>
                         : null
                     }
