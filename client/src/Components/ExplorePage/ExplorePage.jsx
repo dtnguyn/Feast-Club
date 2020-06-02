@@ -13,6 +13,7 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import ConfirmDialog from "../SharedComponents/ConfirmDialog";
 import SearchBar from "../SharedComponents/SearchBar";
 import UpdateLocationForm from "../SharedComponents/UpdateLocationForm"
+import { search as SearchBlogs} from "../../Utilities/makeCancelRequest"
 
 
 import '../../styles/Explore.css'
@@ -197,6 +198,30 @@ function ExplorePage(){
             })
     }
 
+    const searchBlogs = (value) => {
+        setLoading(true);
+        axios.get("http://localhost:5000/blogPosts/search", {
+            withCredentials: true,
+            params: {
+                textInput: value,
+                city: global_location.city,
+                country: global_location.country,
+            }
+        })
+            .then((response) => {
+                console.log("response: " +  response.data);
+                setBlogs(response.data);
+                setLoading(false)
+            }) 
+            .catch((err) => {
+                alert(err);
+                console.log(err);
+                
+            })
+    }
+
+    
+
 
     useEffect(() => {
         getCityImage(global_location.city)}, [global_location]
@@ -211,7 +236,15 @@ function ExplorePage(){
         <div className="explore-page">
             <img className="city-img" src={cityImage}/>
             <h2 className="explore-title">See what other people eat in <br/> {global_location.city}</h2>
-            <SearchBar placeholder="Search posts..."/>
+            <SearchBar 
+                onChange={(value) => {
+                    search = async (value) => {
+                        searchBlogs(value)
+                    }
+                }} 
+                placeholder="Search posts..."
+
+            />
             <Fab onClick={() => setOpenLocationForm(true)} variant="extended" size="md"  style={changeLocationIconStyle}>
                 <NavigationIcon className="change-location-icon"/>
                 Change Location 

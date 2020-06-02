@@ -8,7 +8,7 @@ import Dialog from '@material-ui/core/Dialog';
 import InputRestaurantName from "./ComposeInputRestaurantName";
 import { useSelector } from 'react-redux';
 import ImageSlide from '../SharedComponents/ImageSlide'
-import axios from 'axios';
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 
 const ComposeDialog = (props) => {
@@ -22,6 +22,8 @@ const ComposeDialog = (props) => {
     const [files, setFiles] = useState([]);
 
     const [sources, setSources] = useState([]);
+
+    const [loading, setLoading] = useState(false);
 
 
     const handleChange = (event) => {
@@ -99,27 +101,31 @@ const ComposeDialog = (props) => {
                                     props.handleClose();
                                     setFiles([]);
                                     setSources([]);
+                                    setLoading(false);
                                 }} 
                                 className="fab" 
                                 aria-label="edit" 
                                 style={{backgroundColor: red[100], margin: 20}}>
                                 <Cancel className="compose-cancel-icon" />
                             </Fab>
-                            {checkButtonStatus 
+                            {checkButtonStatus && !loading
                             ? <Fab
                                 onClick={() => {
                                     if(props.focusBlog.blogID === ''){
-                                        console.log("Posting");
+                                        setLoading(true);
                                         props.handlePost(restaurant, blogContent, files, (result) => {
                                             if(result){
+                                                setLoading(false);
                                                 setRestaurant(null);
                                                 setBlogContent('');
                                             }
                                         });
                                     } else {
                                         console.log("Editing");
+                                        setLoading(true);
                                         props.handleEdit(restaurant, blogContent, files, (result) => {
                                             if(result){
+                                                setLoading(false);
                                                 setRestaurant(null);
                                                 setBlogContent('');
                                             }
@@ -135,6 +141,9 @@ const ComposeDialog = (props) => {
                                 <Check className="compose-check-icon" />
                             </Fab>
                             }
+                            {loading 
+                            ? <CircularProgress className="fab" style={{margin: 20, marginTop: 30}}/>
+                            : null}
                         </div>
                     </div>
                     {
@@ -146,7 +155,6 @@ const ComposeDialog = (props) => {
                     }
                     
                 </div>
-                
 
             </Dialog>
         </div>

@@ -69,5 +69,6 @@
 }
 
 .image-slide-lg {
-    margin-right: 20px;
+    margin-right: 20px !important;
 }
+

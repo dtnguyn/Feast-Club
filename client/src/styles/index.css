@@ -12,6 +12,14 @@ code {
     monospace;
 }
 
+.carousel .control-dots {
+  text-align: justify !important;
+}
+
+li{
+  list-style-image: unset;
+}
+
 @font-face {
   font-family: 'DancingScript-Bold';
   src: local('FiraSans'), url(../fonts/DancingScript-Bold.ttf) format('truetype');

@@ -5,7 +5,15 @@ import '../../styles/Register.css';
 
 function SearchBar(props){
     return(
-        <input className="input-searchBar" type="text" name="search" placeholder={props.placeholder}/>
+        <input 
+            onChange={(event) => {
+                props.onChange(event.target.value);
+            }} 
+            className="input-searchBar" 
+            type="text" 
+            name="search" 
+            placeholder={props.placeholder}
+        />
     );
 }
 
