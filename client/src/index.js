@@ -18,7 +18,6 @@ import './fonts/Montserrat-Light.ttf'
 
 
 require('dotenv').config()
-
 ReactDOM.render(
     <Provider store={store}>
         <App />

@@ -11,9 +11,8 @@ import BlogDetailPage from "./Components/BlogDetailPage/BlogDetailPage"
 
 import './styles/App.css';
 
-import axios from "axios";
-import { BrowserRouter as Router, Route, Link , useHistory} from "react-router-dom";
-import { faCompass } from "@fortawesome/free-solid-svg-icons";
+import { BrowserRouter as Router, Route} from "react-router-dom";
+
 import { Hidden } from "@material-ui/core";
 
 
@@ -21,7 +20,9 @@ import { Hidden } from "@material-ui/core";
 
 function App(props) {
   return (
-    <Router style={{overflow: Hidden}}>
+    <Router 
+      style={{overflow: Hidden}}
+    >
       <Route path="/" exact component={HomePage} />
       <Route path="/register" exact component={RegisterPage} />
       <Route path="/register/status" component={RegisterStatusPage}/>

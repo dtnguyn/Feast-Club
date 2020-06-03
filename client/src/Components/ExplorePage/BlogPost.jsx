@@ -79,6 +79,7 @@ const BlogPost = (props) => {
                 images={props.blog.images}
             />
             <BlogFooter 
+                blog={props.blog}  
                 blogID={props.blog.id}
                 userID={props.blog.user_id}
                 heart={heart}

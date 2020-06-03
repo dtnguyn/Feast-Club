@@ -92,6 +92,8 @@ const BlogDetailPage = (props) => {
     }, [])
 
 
+
+    
     return (
         <div className="blog-detail-page">
             <div className="blog-detail">
@@ -130,13 +132,14 @@ const BlogDetailPage = (props) => {
                         className="post-comment-button press-button" 
                         src="/post_comment_icon.svg" 
                         onClick={() => {
-                            console.log(blog);
-                            addComment({
-                                blogID: blog.id,
-                                userID: global_user.id,
-                                authorName: global_user.name,
-                                content: commentContent
-                            })
+                            // console.log(blog);
+                            // addComment({
+                            //     blogID: blog.id,
+                            //     userID: global_user.id,
+                            //     authorName: global_user.name,
+                            //     content: commentContent
+                            // })
+                            props.history.goBack()
                         }}
                     />
                 </div>

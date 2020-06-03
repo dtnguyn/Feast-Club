@@ -13,7 +13,6 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import ConfirmDialog from "../SharedComponents/ConfirmDialog";
 import SearchBar from "../SharedComponents/SearchBar";
 import UpdateLocationForm from "../SharedComponents/UpdateLocationForm"
-import { search as SearchBlogs} from "../../Utilities/makeCancelRequest"
 
 
 import '../../styles/Explore.css'
@@ -32,6 +31,8 @@ function ExplorePage(){
     const global_location = useSelector(state => state.userLocation);
 
     const [deleteDialog, setDeleteDialog] = useState(false);
+
+    
 
     const [focusBlog, setFocusBlog] = useState({
         blogID: '',
@@ -69,7 +70,6 @@ function ExplorePage(){
 
     function getCityImage(city){
         setLoading(true);
-        const url = `https://pixabay.com/api/?key=${process.env.REACT_APP_PIXABAY_API_KEY}&q=${city}&image_type=photo&orientation=horizontal&min_width=1000`
         axios.get("http://localhost:5000/cityImage", {
             params: {
                 city: city
@@ -198,10 +198,20 @@ function ExplorePage(){
             })
     }
 
+
+    const createCancelToken = () => axios.CancelToken.source()
+    let cancelToken = null
     const searchBlogs = (value) => {
         setLoading(true);
+
+        if(cancelToken) {
+            console.log("cancel");
+            cancelToken.cancel();
+        } 
+        cancelToken = createCancelToken();
         axios.get("http://localhost:5000/blogPosts/search", {
             withCredentials: true,
+            cancelToken: cancelToken.token,
             params: {
                 textInput: value,
                 city: global_location.city,
@@ -214,13 +224,16 @@ function ExplorePage(){
                 setLoading(false)
             }) 
             .catch((err) => {
-                alert(err);
-                console.log(err);
-                
+                if (axios.isCancel(err)) {
+                    console.log('Request canceled', err);
+                } else {
+                   
+                    console.log(err);    
+                }
+               
             })
     }
 
-    
 
 
     useEffect(() => {
@@ -238,9 +251,8 @@ function ExplorePage(){
             <h2 className="explore-title">See what other people eat in <br/> {global_location.city}</h2>
             <SearchBar 
                 onChange={(value) => {
-                    search = async (value) => {
-                        searchBlogs(value)
-                    }
+                    
+                    searchBlogs(value);
                 }} 
                 placeholder="Search posts..."
 
@@ -249,8 +261,9 @@ function ExplorePage(){
                 <NavigationIcon className="change-location-icon"/>
                 Change Location 
             </Fab>
-            {blogs.map(blog => {
+            {blogs.map((blog, i) => {
                 return <BlogPost
+                    key={i}
                     blog={blog}
                     blogID={blog.id}
                     userID={blog.user_id}
