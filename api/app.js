@@ -108,12 +108,10 @@ passport.use(new LocalStrategy({
 ));
 
 passport.serializeUser(function(user, done) {
-    console.log("serializzeeeaseasee")
     done(null, user);
   });
   
 passport.deserializeUser(function(user, done) {
-    console.log("deserializzeeeaseasee")
     findUserByIDToDeserialize(user, done);
 });
 
@@ -191,7 +189,8 @@ async function findUserByEmail(email) {
                 id: table.rows[0].id,
                 email: table.rows[0].email,
                 name: table.rows[0].name,
-                password: table.rows[0].password
+                password: table.rows[0].password,
+                isOauth: false
             }
         } else { // if there is no match email
             console.log("no founded user")
@@ -212,7 +211,8 @@ async function findUserByIDOrCreate(profile, done) {
             const user = {
                 id: table.rows[0].id,
                 name: table.rows[0].name,
-                email: table.rows[0].email
+                email: table.rows[0].email,
+                isOauth: true
             }
             //setLogInData(true, user.id, "");
             return done(null, user)
@@ -222,7 +222,7 @@ async function findUserByIDOrCreate(profile, done) {
             const user = {
                 id: profile.id,
                 name: profile.displayName || profile.name.givenName + " " + profile.name.familyName,
-                email: profile.emails[0].value
+                email: profile.emails[0].value,
             }
             addOauthUser(user.id, user.email, user.name);
             done(null, user);
@@ -248,7 +248,7 @@ async function findUserByIDToDeserialize(user, done) {
                 id: table.rows[0].id,
                 email: table.rows[0].email,
                 name: table.rows[0].name,
-                password: table.rows[0].password
+                password: table.rows[0].password,
             }
             return done(null, user);
         } else if(oauthTable.rows.length != 0 && oauthTable.rows[0] != undefined) {
@@ -856,22 +856,158 @@ async function uploadImageToDatabase(id, url, callback){
     }
 }
 
+function uploadAvatar(userID, file, isOauth, next, callback){
+    // Create a new blob in the bucket and upload the file data.
+    const blob = bucket.file(file.originalname);
+    const blobStream = blob.createWriteStream({
+        resumable: false
+    });
+    
+    blobStream.on('error', (err) => {
+        next(err);
+    });
+
+    blobStream.on('finish', async () => {
+        // The public URL can be used to directly access the file via HTTP.
+        console.log(`https://storage.googleapis.com/${bucket.name}/${blob.name}`, i);
+        try{
+            editUserAvatar(userID, `https://storage.googleapis.com/${bucket.name}/${blob.name}`, isOauth, callback)
+        } catch(err){
+            console.log(err);
+        }
+    });
+
+    blobStream.end(file.buffer);
+}
+
+async function editUserName(userID, newName, isOauth, callback){
+    try {
+        console.log("--------------------------");
+        console.log("Editing user name!");
+
+        if(isOauth){
+            (
+                "UPDATE oauth_users SET " +
+                "name = $1 " + 
+                "WHERE userID = $2 "
+            ,[newName, userID])
+        } else {
+            const result = await pool.query
+            (
+                "UPDATE users SET " +
+                "name = $1, " + 
+                "WHERE userID = $2 "
+            ,[newName, userID])
+        }   
+
+        if(result.rowCount == 1){
+            console.log("Successful!");
+            callback(true);
+        } else {
+            console.log("Fail!");
+            callback(false);
+        }
+       
+    } catch(error) {
+        console.log("Fail to edit user name!");
+        console.log(error);
+        callback(false);
+    } finally {
+        console.log("Finish editing user name");
+        console.log("----------------------------------")
+    }
+}
+
+async function editUserEmailAndPassword(userID, newEmail, newPassword, callback){
+    try {
+        console.log("--------------------------");
+        console.log("Editing user email and password!");
+        
+        const result = await pool.query
+        (
+            "UPDATE users SET " +
+            "email = $1, " +
+            "password = $2 " + 
+            "WHERE userID = $3 "
+        ,[newEmail, newPassword, userID])
+
+        if(result.rowCount == 1){
+            console.log("Successful!");
+            callback(true);
+        } else {
+            console.log("Fail!");
+            callback(false);
+        }
+       
+    } catch(error) {
+        console.log("Fail to edit user email and password!");
+        console.log(error);
+        callback(false);
+    } finally {
+        console.log("Finish editing user email and password");
+        console.log("----------------------------------")
+    }
+}
+
+
+
+async function editUserAvatar(userID, url, isOauth, callback){
+    try {
+        console.log("--------------------------");
+        console.log("Editing user avatar!");
+        
+        let result;
+        if(isOauth){
+            result = await pool.query
+            (
+                "UPDATE oauth_users SET " +
+                "avatar = $1, " + 
+                "WHERE userID = $2 "
+            ,[url, userID])
+        } else {
+            result = await pool.query
+            (
+                "UPDATE users SET " +
+                "avatar = $1, " + 
+                "WHERE userID = $2 "
+            ,[url, userID])
+        }
+        
+        if(result.rowCount == 1){
+            console.log("Successful!");
+            callback(true);
+        } else {
+            console.log("Fail to edit avatar!");
+            callback(false);
+        }
+       
+    } catch(error) {
+        console.log("Fail to edit user avatar!");
+        console.log(error);
+        callback(false);
+    } finally {
+        console.log("Finish editing user avatar");
+        console.log("----------------------------------")
+    }
+}
+
+
+
 //Routes
 
 /* GET routes */
 
 app.get("/", (req, res) => {
-    console.log(req.session.passport.user);
-   
     if(req.isAuthenticated()){
-        
+        console.log("Hello User ", req.session.passport.user);
         res.send({
             logInStatus: true,
             message: "",
             userInfo: {
                 id: req.session.passport.user.id,
                 name: req.session.passport.user.name,
-                email: req.session.passport.user.email
+                email: req.session.passport.user.email,
+                isOauth: req.session.passport.user.isOauth
             }
         })
         console.log("is authenticated");
@@ -1049,7 +1185,6 @@ app.post('/comments', (req, res) => {
 app.patch('/blogPosts', multer.array('imgCollection'),(req, res, next) => {
     console.log("editing", req.files);
     if(req.isAuthenticated()){
-        console.log(req.body);
         const blogID = req.query.blogID;
         const restaurantID = req.query.restaurantID
         const restaurantName = req.query.restaurantName;
@@ -1059,6 +1194,39 @@ app.patch('/blogPosts', multer.array('imgCollection'),(req, res, next) => {
         const country = req.query.country;
         editBlogPost(blogID, restaurantID ,restaurantName, restaurantAdress, content, city, country, req.files, next, (result) => res.send(result));
     }
+})
+
+app.patch('/userSettings/userName', (req, res) => {
+    if(req.isAuthenticated()){
+        editUserName(req.session.passport.user.id, change.userName, req.isOauth, (result) => {
+            res.send(result);
+        });
+    }
+})
+
+app.patch('/userSettings/emailAndPassword', (req, res) => {
+    
+    if(req.isAuthenticated()){
+        bcrypt.hash(req.body.password, saltRounds, function(err,hash){
+            if(!err){
+                editUserEmailAndPassword(req.session.passport.user.id, req.body.email, hash, (result) => {
+                    res.send(result)
+                });
+            } else {
+                console.log(err);
+            }
+        })
+    }
+    
+})
+
+app.patch('/userSettings/avatar', multer.single('image') ,(req, res, next) => {
+    if(req.isAuthenticated()){
+        uploadAvatar(req.session.passport.user.id, req.file, req.querry.isOauth, next, (result) => {
+            res.send(result)
+        })
+    }
+
 })
 
 

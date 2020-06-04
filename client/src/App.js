@@ -8,8 +8,10 @@ import RegisterStatusPage from "./Components/RegisterPage/RegisterStatusPage";
 import RestaurantInfoDetailPage from "./Components/RestaurantInfoDetailPage/RestaurantInfoDetailPage";
 import ExplorePage from "./Components/ExplorePage/ExplorePage"
 import BlogDetailPage from "./Components/BlogDetailPage/BlogDetailPage"
+import UserInfoPage from "./Components/UserInfoPage/UserInfoPage"
 
 import './styles/App.css';
+
 
 import { BrowserRouter as Router, Route} from "react-router-dom";
 
@@ -31,6 +33,7 @@ function App(props) {
       <Route path="/info" component={RestaurantInfoDetailPage}/>
       <Route path="/explore" component={ExplorePage}/>
       <Route path="/bloginfo" component={BlogDetailPage}/>
+      <Route path="/userinfo" component={UserInfoPage}/>
     </Router>
   );
 }
