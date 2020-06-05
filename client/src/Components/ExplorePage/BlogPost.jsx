@@ -68,6 +68,7 @@ const BlogPost = (props) => {
             <BlogHeader 
                 userID={props.blog.user_id}
                 authorName={props.blog.author_name}
+                avatar={props.blog.user_ava}
                 date={props.blog.date}
                 triggerEditDialog={props.triggerEditDialog}
                 requestDeleteBlog={props.requestDeleteBlog}

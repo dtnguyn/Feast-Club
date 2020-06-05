@@ -13,6 +13,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 
 const ComposeDialog = (props) => {
     const userName = useSelector(state => state.currentUser.name);
+    const avatar = useSelector(state => state.currentUser.avatar);
     const [restaurant, setRestaurant] = useState(null);
     
     const [checkButtonStatus, setCheckButtonStatus] = useState(false);
@@ -75,7 +76,7 @@ const ComposeDialog = (props) => {
                 <div className={"compose-dialog-content " +(sources.length == 0 ? "" : "row")}>
                     <div className={(sources.length == 0 ? "col-12" : "col-7 compose-area")}>
                         <div className="compose-header">
-                            <img src="/default-user-icon.svg" style={{width: "60px", height: "60px"}} />
+                            <img src={avatar} alt="/default-user-icon.svg" className="avatar-image avatar-image-md" />
                             <p className="compose-author">{userName}</p>
                         </div>
                         <div className="compose-body">

@@ -7,7 +7,7 @@ const BlogHeader = (props) => {
     const global_user = useSelector(state => state.currentUser);
     return(
         <div className="compose-header">
-            <img src="/default-user-icon.svg" style={{width: "60px", height: "60px"}} />
+            <img src={props.avatar} alt="/default-user-icon.svg" className="avatar-image avatar-image-md"/>
             <p className="compose-author">{props.authorName}</p>
             {global_user.id == props.userID 
             ? <div>

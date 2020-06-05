@@ -1,5 +1,8 @@
 
 .user-info-page{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 
 }
 
@@ -17,14 +20,8 @@
     flex-direction: row;
 }
 
-.user-image{
-    border-radius: 50%;
-}
 
-.user-image-lg{
-    width: 120px;
-    height: 120px;
-}
+
 
 .user-info-card-text-container{
     display: flex;
@@ -42,8 +39,21 @@
 #edit-user-icon{
     margin-top: 5px;
     margin-left: 10px;
+    
+}
+
+.avatar-image:hover{
+    filter: brightness(50%);
 }
 
 .user-name-info {
     font-size: 2rem;
+}
+
+.jumbotron-container {
+    width: 60vw;
+}
+
+.link {
+    color: cornflowerblue;
 }

@@ -100,6 +100,7 @@ const BlogDetailPage = (props) => {
                 <div>
                     <BlogHeader 
                         authorName={blog.author_name}
+                        avatar={blog.user_ava}
                         date={blog.date}
                         triggerEditDialog={props.triggerEditDialog}
                         requestDeleteBlog={props.requestDeleteBlog}

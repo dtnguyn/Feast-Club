@@ -183,13 +183,14 @@ async function addOauthUser(id, email, name) {
 async function findUserByEmail(email) {
     try{
         console.log("Connect to database successfully!");
-        const table = await pool.query("SELECT id, name, email, password FROM users WHERE email = $1", [email]);
+        const table = await pool.query("SELECT id, name, email, password, avatar FROM users WHERE email = $1", [email]);
         if (table.rows[0] != undefined){ // if there is a match email
             return user = {
                 id: table.rows[0].id,
                 email: table.rows[0].email,
                 name: table.rows[0].name,
                 password: table.rows[0].password,
+                avatar: table.rows[0].avatar,
                 isOauth: false
             }
         } else { // if there is no match email
@@ -205,13 +206,14 @@ async function findUserByEmail(email) {
 async function findUserByIDOrCreate(profile, done) {
     try{
         console.log("Connect to database successfully!");
-        const table = await pool.query("SELECT id, name, email FROM oauth_users WHERE id = $1", [profile.id]);
+        const table = await pool.query("SELECT id, name, email, avatar FROM oauth_users WHERE id = $1", [profile.id]);
         console.log("find or create: ", table.rows);
         if (table.rows.length != 0 && table.rows[0] != undefined){ // if there is a match id
             const user = {
                 id: table.rows[0].id,
                 name: table.rows[0].name,
                 email: table.rows[0].email,
+                avatar: table.rows[0].avatar,
                 isOauth: true
             }
             //setLogInData(true, user.id, "");
@@ -869,7 +871,7 @@ function uploadAvatar(userID, file, isOauth, next, callback){
 
     blobStream.on('finish', async () => {
         // The public URL can be used to directly access the file via HTTP.
-        console.log(`https://storage.googleapis.com/${bucket.name}/${blob.name}`, i);
+        console.log(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
         try{
             editUserAvatar(userID, `https://storage.googleapis.com/${bucket.name}/${blob.name}`, isOauth, callback)
         } catch(err){
@@ -884,19 +886,20 @@ async function editUserName(userID, newName, isOauth, callback){
     try {
         console.log("--------------------------");
         console.log("Editing user name!");
-
+        let result;
         if(isOauth){
+            result = await pool.query
             (
                 "UPDATE oauth_users SET " +
                 "name = $1 " + 
-                "WHERE userID = $2 "
+                "WHERE id = $2 "
             ,[newName, userID])
         } else {
             const result = await pool.query
             (
                 "UPDATE users SET " +
-                "name = $1, " + 
-                "WHERE userID = $2 "
+                "name = $1 " + 
+                "WHERE id = $2 "
             ,[newName, userID])
         }   
 
@@ -928,7 +931,7 @@ async function editUserEmailAndPassword(userID, newEmail, newPassword, callback)
             "UPDATE users SET " +
             "email = $1, " +
             "password = $2 " + 
-            "WHERE userID = $3 "
+            "WHERE id = $3 "
         ,[newEmail, newPassword, userID])
 
         if(result.rowCount == 1){
@@ -955,21 +958,22 @@ async function editUserAvatar(userID, url, isOauth, callback){
     try {
         console.log("--------------------------");
         console.log("Editing user avatar!");
+        console.log(url, userID);
         
         let result;
-        if(isOauth){
+        if(isOauth === true){
             result = await pool.query
             (
                 "UPDATE oauth_users SET " +
-                "avatar = $1, " + 
-                "WHERE userID = $2 "
+                "avatar = $1 " + 
+                "WHERE id = $2 "
             ,[url, userID])
         } else {
             result = await pool.query
             (
                 "UPDATE users SET " +
-                "avatar = $1, " + 
-                "WHERE userID = $2 "
+                "avatar = $1 " + 
+                "WHERE id = $2 "
             ,[url, userID])
         }
         
@@ -993,6 +997,7 @@ async function editUserAvatar(userID, url, isOauth, callback){
 
 
 
+
 //Routes
 
 /* GET routes */
@@ -1007,6 +1012,7 @@ app.get("/", (req, res) => {
                 id: req.session.passport.user.id,
                 name: req.session.passport.user.name,
                 email: req.session.passport.user.email,
+                avatar: req.session.passport.user.avatar,
                 isOauth: req.session.passport.user.isOauth
             }
         })
@@ -1221,8 +1227,9 @@ app.patch('/userSettings/emailAndPassword', (req, res) => {
 })
 
 app.patch('/userSettings/avatar', multer.single('image') ,(req, res, next) => {
+    console.log("File: ", req.file);
     if(req.isAuthenticated()){
-        uploadAvatar(req.session.passport.user.id, req.file, req.querry.isOauth, next, (result) => {
+        uploadAvatar(req.session.passport.user.id, req.file, req.query.isOauth, next, (result) => {
             res.send(result)
         })
     }
