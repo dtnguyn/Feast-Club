@@ -1203,8 +1203,9 @@ app.patch('/blogPosts', multer.array('imgCollection'),(req, res, next) => {
 })
 
 app.patch('/userSettings/userName', (req, res) => {
+    console.log(req.body.userName, req.body.isOauth);
     if(req.isAuthenticated()){
-        editUserName(req.session.passport.user.id, change.userName, req.isOauth, (result) => {
+        editUserName(req.session.passport.user.id, req.body.userName, req.body.isOauth, (result) => {
             res.send(result);
         });
     }

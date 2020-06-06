@@ -4,10 +4,9 @@ import UserInfoCard from "./UserInfoCard"
 import ChangeEmailPasswordJumboTron from "./ChangeEmailPasswordJumbotron"
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { useSelector } from "react-redux"
-
 import axios from 'axios'
-
-import "../../styles/UserInfoPage.css"
+import "../../styles/UserInfoPage.css";
+import FormDialog from "../SharedComponents/FormDialog"
 
 const UserInfoPage = () => {
 
@@ -18,6 +17,7 @@ const UserInfoPage = () => {
 
 
     const changeAvatar = (newAvatar) => {
+        setLoading(true);
         var formData = new FormData();
         formData.append('image', newAvatar)
         console.log("Change avatar!", formData, newAvatar)
@@ -28,7 +28,30 @@ const UserInfoPage = () => {
             withCredentials: true
         })  
             .then((response) => {
+                if(response === true){
+                    setLoading(false);
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+                setLoading(false);
+            })
+    }
 
+    const changeUserName = (values) => {
+        setLoading(true);
+        const newUserName = values[0];
+        axios.patch("http://localhost:5000/userSettings/userName", 
+        {userName: newUserName, isOauth: currentUser.isOauth}, 
+        {withCredentials: true})  
+            .then((response) => {
+                if(response === true){
+                    setLoading(false);
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+                setLoading(false);
             })
     }
 
@@ -36,6 +59,21 @@ const UserInfoPage = () => {
         <div>
             <InfoNavbar/>
             <div className="user-info-page">
+                <FormDialog 
+                    title="Change User Name"
+                    message="You may have to wait for a bit before the change can occur."
+                    fields={[
+                        {
+                            label: "User name",
+                            value: currentUser.name,
+                        },
+                        {
+                            label: "User name",
+                            value: currentUser.name,
+                        } 
+                    ]}
+                    action={changeUserName}
+                />
                 {loading ? <LinearProgress color="secondary" /> : null}
                 <UserInfoCard 
                     imageAction={changeAvatar}
