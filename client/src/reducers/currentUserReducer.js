@@ -5,7 +5,6 @@ state = {
     email: ""
 }
 , action) => {
-    console.log("heheheheheheheheheh: " + JSON.stringify(action.payload))
     switch(action.type){
         case 'USER_SIGN_IN':
             if(action.payload != undefined)

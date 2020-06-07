@@ -7,7 +7,6 @@ import { useDispatch } from "react-redux"
 
 import axios from "axios";
 import { BrowserRouter as Router, Route, Link, useHistory } from "react-router-dom";
-import { updateCurrentLocation } from "../../actions";
 import { useSelector } from "react-redux"
 
 
@@ -27,7 +26,6 @@ function MainPage(props) {
             const logInStatus = response.data.logInStatus;
             console.log("logged in: " + logInStatus);
             if(logInStatus){
-              dispatch(currentUserSignIn(response.data.userInfo));
               console.log("Authenticate from session");
             }
             else

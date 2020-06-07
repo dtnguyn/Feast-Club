@@ -2,11 +2,15 @@ import React, {useState} from "react";
 import "../../styles/UserInfoPage.css"
 import { useSelector } from "react-redux"
 
+import { useHistory } from "react-router-dom"
+
 const UserInfoCard = (props) => {
 
-    const [avatar, setAvatar] = useState(useSelector(state => state.currentUser.avatar));
+    const currentUser = useSelector(state => state.currentUser)
 
-    
+    const [avatar, setAvatar] = useState(currentUser.avatar);
+
+    const history = useHistory();
 
     const handleChange = (event) => {
         if(event.target.files[0] === null) return;
@@ -26,11 +30,16 @@ const UserInfoCard = (props) => {
                 <input type="file"  accept="image/*" hidden id="selectImage" onChange={handleChange}/>
                 <div className="user-info-card-text-container">
                     <p className="user-info-card-text user-name-info">
-                        Adron Nguyen 
-                        <img src="/edit-username-icon.svg" className="small-button press-button" id="edit-user-icon"/>
+                        {currentUser.name}
+                        <img 
+                            src="/edit-username-icon.svg" 
+                            className="small-button press-button" 
+                            id="edit-user-icon"
+                            onClick={props.openFormDialog}
+                        />
                     </p>
                     <p className="user-info-card-text">0 Posts </p>
-                    <a className="user-info-card-text link" href="#" >Log out</a>
+                    <a className="user-info-card-text link" href="#" onClick={() => history.push("/signin")} >Log out</a>
                 </div>
             </div>
         </div>

@@ -895,12 +895,12 @@ async function editUserName(userID, newName, isOauth, callback){
                 "WHERE id = $2 "
             ,[newName, userID])
         } else {
-            const result = await pool.query
+            result = await pool.query
             (
                 "UPDATE users SET " +
                 "name = $1 " + 
                 "WHERE id = $2 "
-            ,[newName, userID])
+            ,[newName, userID]);
         }   
 
         if(result.rowCount == 1){
@@ -1003,6 +1003,7 @@ async function editUserAvatar(userID, url, isOauth, callback){
 /* GET routes */
 
 app.get("/", (req, res) => {
+    console.log("/ ", req.isAuthenticated());
     if(req.isAuthenticated()){
         console.log("Hello User ", req.session.passport.user);
         res.send({
@@ -1020,6 +1021,14 @@ app.get("/", (req, res) => {
     } else res.send();
 });
 
+app.get("/logout", (req, res) => {
+    console.log("Logging out");
+    console.log(req.isAuthenticated());
+    req.session.destroy();
+    req.logout();
+    console.log(req.isAuthenticated());
+    res.send(true);
+})
 
 app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -1206,13 +1215,14 @@ app.patch('/userSettings/userName', (req, res) => {
     console.log(req.body.userName, req.body.isOauth);
     if(req.isAuthenticated()){
         editUserName(req.session.passport.user.id, req.body.userName, req.body.isOauth, (result) => {
+            console.log("here");
             res.send(result);
         });
     }
 })
 
 app.patch('/userSettings/emailAndPassword', (req, res) => {
-    
+    console.log(req.body.email, req.body.password);
     if(req.isAuthenticated()){
         bcrypt.hash(req.body.password, saltRounds, function(err,hash){
             if(!err){

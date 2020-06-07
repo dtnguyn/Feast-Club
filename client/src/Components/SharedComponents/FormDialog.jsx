@@ -13,13 +13,17 @@ const FormDialog = (props) => {
     const [fields, setFields] = useState(props.fields);
 
     const handleChange = (e, i) => {
-        // setFields(prevValues => ([
-        //     ...prevValues,
-        //     {prevValues[i].value}: e.target.value
-        // ]));
-        setFields(...fields.slice(i - 1), {...fields[i], value: e.target.value, ...fields.slice(i + 1, fields.length - 1)});
-    
-    
+        console.log("fields ", fields)
+        let updatedFields;
+        if(i === 0){
+            updatedFields = [{...fields[i], value: e.target.value}, ...fields.slice(i + 1)];
+        } else if(i === fields.length - 1){
+            updatedFields = [...fields.slice(0, -1), {...fields[i], value: e.target.value}];
+        } else {
+            updatedFields = [...fields.slice(0, i), {...fields[i], value: e.target.value}, ...fields.slice(i + 1)];
+        }
+        setFields(updatedFields);
+        
     }
 
     useEffect(() => {
@@ -38,24 +42,24 @@ const FormDialog = (props) => {
             </DialogContentText>
 
             {props.fields.map((field, i) => {
-                console.log("values ", fields)
                 return(
                     <TextField
                         autoFocus
                         margin="dense"
                         id="name"
                         label={field.label}
-                        value={field.value}
+                        value={fields[i].value}
                         onChange={(e) => handleChange(e, i)}
                         fullWidth
                         required
+                        type={field.type}
                     />
                 );
             })}
             
             </DialogContent>
             <DialogActions>
-            <Button color="primary">
+            <Button color="primary" onClick={props.close}>
                 Cancel
             </Button>
             <Button color="primary" onClick={() => {

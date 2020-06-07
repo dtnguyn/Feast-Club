@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {Link, Redirect, useHistory} from "react-router-dom"
 
 import '../../styles/SignIn.css';
@@ -67,7 +67,7 @@ function SignInBox(){
                 if(logInStatus){
                     console.log(response.data.userInfo);
                     dispatch(signIn());
-                    
+                    dispatch(currentUserSignIn(response.data.userInfo));
                     history.push("/mainPage");
                 } else{
                     setMessage(messageSendBack);
@@ -82,35 +82,14 @@ function SignInBox(){
     
     }
 
-    // function isValid(email, password){
-
-    //     //Check blank input
-    //     if(name, email, password, passwordCheck === "") {
-    //         console.log("is false")
-    //         setMessage( "You have left some blank fields!");
-    //         return false
-    //     }
-
-    //     //Check if email is valid
-    //     if(!validator.validate(email)){
-    //         setMessage( "Your email is invalid!");
-    //         return false
-    //     }
-
-    //     //Check if password and retype password is the same 
-    //     if(password != passwordCheck){
-    //         setMessage("Check your password again!");
-    //         return false
-    //     }
-
-    //     return isValid;
-    // }
 
 
     const redirectLinkStyle = {
         color: '#eb8242'
     }
 
+
+    
 
     return(
         <div>
