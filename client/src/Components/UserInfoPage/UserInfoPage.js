@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import InfoNavbar from "../SharedComponents/InfoNavbar"
 import UserInfoCard from "./UserInfoCard"
 import ChangeEmailPasswordJumboTron from "./ChangeEmailPasswordJumbotron"
@@ -10,7 +10,7 @@ import FormDialog from "../SharedComponents/FormDialog"
 import {currentUserSignIn } from "../../actions";
 import { useDispatch } from "react-redux";
 import { useHistory } from 'react-router-dom';
-import { signOut } from "../../actions";
+import TabView from './TabView';
 
 
 const UserInfoPage = () => {
@@ -20,6 +20,10 @@ const UserInfoPage = () => {
     const [openUserNameDialog, setOpenUserNameDialog] = useState(false);
     const [openVerifyCodeDialog, setOpenVerifyCodeDialog] = useState(false);
     const [openEmailPasswordDialog, setOpenEmailPasswordDialog] = useState(false);
+    const [blogs, setBlogs] = useState({
+        userBlogs: [],
+        likedBlogs: []
+    });
 
     const currentUser = useSelector(state => state.currentUser);
     const history = useHistory();
@@ -111,6 +115,20 @@ const UserInfoPage = () => {
         history.push("/signin");
     }
 
+    useEffect(() => {
+        axios.get("http://localhost:5000/userblogs", 
+        {withCredentials: true})  
+            .then((response) => {
+                if(response.data){
+                    setBlogs(response.data);
+                    console.log(response.data);
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+            })
+    }, [])
+
     return(
         <div>
             <InfoNavbar/>
@@ -182,6 +200,12 @@ const UserInfoPage = () => {
                     openFormDialog={() => setOpenUserNameDialog(true)}
                 />
                 <ChangeEmailPasswordJumboTron onClick={() => {setOpenVerifyCodeDialog(true)}}/>
+                <div className="tab-view-container">
+                    <TabView
+                        blogs={blogs}
+                    />
+                </div>
+                
             </div>
         </div>
         

@@ -530,6 +530,122 @@ async function getBlogPosts(city, country, userID,callBack){
 }
 
 
+async function getUserBlogs(userID, callback){
+    console.log("-----------------------------");
+        console.log("Fetching blogs from database...");
+        const userBlogs = await pool.query
+        (
+            "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
+            "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+            "FROM user_blogs, users " +
+            "WHERE user_blogs.user_id = users.id " +
+            "UNION ALL " +
+            "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+            "FROM user_blogs, oauth_users " +
+            "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
+
+            "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
+
+            "LEFT JOIN ( " +
+            "SELECT heart_count.blog_id, hearts, " +
+            "    CASE is_hearted WHEN 1 " +
+            "    THEN 1 " +
+            "    ELSE 0 " +
+            "    END as is_hearted " +
+            "FROM( " +
+            "    SELECT blog_id, COUNT(blog_id) as hearts " +
+            "    FROM user_blog_hearts " +
+            "   GROUP BY blog_id " +
+            ") as heart_count " +
+            "left JOIN ( " +
+            "    SELECT blog_id, COUNT(blog_id) as is_hearted FROM( " +
+            "        SELECT blog_id " +
+            "        FROM user_blog_hearts " +
+            "        WHERE user_id = $1 " +
+            "        ) as a " +
+            "    GROUP BY blog_id " +
+            ") as is_hearted " +
+            "ON is_hearted.blog_id = heart_count.blog_id " +
+            ") as hearts ON hearts.blog_id = id " +
+
+            "LEFT JOIN ( " +
+            "SELECT blog_id, COUNT(*) as comments " +
+            "FROM user_blog_comments " +
+            "GROUP BY blog_id " +
+            ") as comments ON comments.blog_id = id  " +
+
+            "LEFT JOIN ( " +
+            "    SELECT blog_id, array_agg(image_url) AS images " +
+            "    FROM user_blog_images " +
+            "    GROUP BY blog_id " +
+            "    ) as images ON images.blog_id = id " +
+
+            "WHERE user_id = $1 " +
+            "ORDER BY date_posted DESC "
+
+        , [userID]);
+
+        const likedBlogs = await pool.query
+        (
+            "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
+            "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+            "FROM user_blogs, users " +
+            "WHERE user_blogs.user_id = users.id " +
+            "UNION ALL " +
+            "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+            "FROM user_blogs, oauth_users " +
+            "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
+
+            "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
+
+            "LEFT JOIN ( " +
+            "SELECT heart_count.blog_id, hearts, " +
+            "    CASE is_hearted WHEN 1 " +
+            "    THEN 1 " +
+            "    ELSE 0 " +
+            "    END as is_hearted " +
+            "FROM( " +
+            "    SELECT blog_id, COUNT(blog_id) as hearts " +
+            "    FROM user_blog_hearts " +
+            "   GROUP BY blog_id " +
+            ") as heart_count " +
+            "left JOIN ( " +
+            "    SELECT blog_id, COUNT(blog_id) as is_hearted FROM( " +
+            "        SELECT blog_id " +
+            "        FROM user_blog_hearts " +
+            "        WHERE user_id = $1 " +
+            "        ) as a " +
+            "    GROUP BY blog_id " +
+            ") as is_hearted " +
+            "ON is_hearted.blog_id = heart_count.blog_id " +
+            ") as hearts ON hearts.blog_id = id " +
+
+            "LEFT JOIN ( " +
+            "SELECT blog_id, COUNT(*) as comments " +
+            "FROM user_blog_comments " +
+            "GROUP BY blog_id " +
+            ") as comments ON comments.blog_id = id  " +
+
+            "LEFT JOIN ( " +
+            "    SELECT blog_id, array_agg(image_url) AS images " +
+            "    FROM user_blog_images " +
+            "    GROUP BY blog_id " +
+            "    ) as images ON images.blog_id = id " +
+
+            "WHERE is_hearted = 1 " +
+            "ORDER BY date_posted DESC "
+
+        , [userID]);
+        callback({
+            userBlogs: userBlogs.rows,
+            likedBlogs: likedBlogs.rows
+        });
+}
+
+
+
+
+
 async function searchBlogPosts(textInput, city, country, userID,callBack){
     try{
         console.log("-----------------------------");
@@ -1027,7 +1143,7 @@ app.get("/logout", (req, res) => {
     req.session.destroy();
     req.logout();
     console.log(req.isAuthenticated());
-    res.send(true);
+    res.send(true); 
 })
 
 app.get('/auth/google',
@@ -1083,6 +1199,14 @@ app.get('/blogPosts', (req, res) => {
     getBlogPosts(req.query.city, req.query.country, id,(blogs) => {
         console.log(util.inspect(blogs, {showHidden: false, depth: null}))
         res.send(blogs);
+    });
+});
+
+app.get('/userBlogs', (req, res) => {
+    if(!req.isAuthenticated()) res.send(null)
+    let id = req.session.passport.user.id;
+    getUserBlogs(id, (userBlogs) => {
+        res.send(userBlogs);
     });
 });
 
