@@ -1,5 +1,4 @@
 export const updateCurrentLocation = (location) => {
-    console.log("Hello World user2: ", location);
     return {
         type: "UPDATE_LOCATION",
         payload: location
@@ -31,3 +30,4 @@ export const currentUserSignOUt = () => {
         payload: null
     }
 }
+

@@ -15,7 +15,12 @@ const UserInfoCard = (props) => {
     const handleChange = (event) => {
         if(event.target.files[0] === null) return;
         props.startLoading()
-        setAvatar(URL.createObjectURL(event.target.files[0]));
+        try{
+            setAvatar(URL.createObjectURL(event.target.files[0]));
+        } catch(err){
+            console.log(err);
+        }
+        
         props.imageAction(event.target.files[0]);
     }
 
@@ -25,9 +30,9 @@ const UserInfoCard = (props) => {
                 <img 
                     className="avatar-image avatar-image-lg avatar-image-hover" 
                     src={avatar}
-                    onClick={() => document.getElementById("selectImage").click()}
+                    onClick={() => document.getElementById("avatar").click()}
                 />
-                <input type="file"  accept="image/*" hidden id="selectImage" onChange={handleChange}/>
+                <input type="file"  accept="image/*" hidden id="avatar" onChange={handleChange}/>
                 <div className="user-info-card-text-container">
                     <p className="user-info-card-text user-name-info">
                         {currentUser.name}

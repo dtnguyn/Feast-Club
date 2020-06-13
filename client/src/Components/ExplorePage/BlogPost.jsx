@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import '../../styles/Explore.css';
 
 import axios from 'axios';
-
+import { useSelector } from 'react-redux';
 import { useHistory } from "react-router-dom";
 import BlogHeader from "./BlogHeader";
 import BlogBody from  "./BlogBody";
@@ -17,6 +17,10 @@ const BlogPost = (props) => {
     const history = useHistory();
 
     const addHeart = (info) => {
+        if(!isLoggedIn){
+            history.push("/signin"); 
+            return
+        }
         axios.post("http://localhost:5000/love", info, {withCredentials: true})
             .then((response) => {
                 if(response.data) {
@@ -26,7 +30,15 @@ const BlogPost = (props) => {
             })
     }
 
+    const isLoggedIn = useSelector(state => state.isLoggedIn)
+    
+    
+
     const deleteHeart = (info) => {
+        if(!isLoggedIn){
+            history.push("/signin"); 
+            return
+        }
         axios.delete("http://localhost:5000/love",
             {
                 withCredentials: true,

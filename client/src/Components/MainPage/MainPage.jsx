@@ -2,7 +2,7 @@ import React, { useState } from "react";
 
 import MainPageContent from "./MainPageContent"
 
-import {currentUserSignIn } from "../../actions";
+import {currentUserSignIn, signIn } from "../../actions";
 import { useDispatch } from "react-redux"
 
 import axios from "axios";
@@ -18,7 +18,7 @@ import "../../styles/Map.css";
 function MainPage(props) {
 
   const history = useHistory();
-  const isLoggedIn = useSelector(state => state.isLoggedIn)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const dispatch = useDispatch();
 
   axios.get("http://localhost:5000/", {withCredentials: true})
@@ -27,6 +27,9 @@ function MainPage(props) {
             console.log("logged in: " + logInStatus);
             if(logInStatus){
               console.log("Authenticate from session");
+              setIsLoggedIn(true);
+              dispatch(currentUserSignIn(response.data.userInfo));
+              dispatch(signIn());
             }
             else
               history.push("/");        
@@ -35,6 +38,7 @@ function MainPage(props) {
           console.log(err);
       })
 
+  if(!isLoggedIn) return null
 
   return (
     <div className="map-container">

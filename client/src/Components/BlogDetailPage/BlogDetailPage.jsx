@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useHistory } from 'react-router-dom'
 import BlogHeader from "../ExplorePage/BlogHeader";
 import BlogBody from  "../ExplorePage/BlogBody";
 import BlogFooter from "../ExplorePage/BlogFooter";
@@ -16,7 +17,15 @@ const BlogDetailPage = (props) => {
     const [comments, setComments] = useState([]);
     const [commentContent, setCommentContent] = useState("");
 
+    const history = useHistory();
+    const isLoggedIn = useSelector(state => state.isLoggedIn)
+  
+
     const addHeart = (info) => {
+        if(!isLoggedIn){
+            history.push("/signin");
+            return
+        }
         axios.post("http://localhost:5000/love", info, {withCredentials: true})
             .then((response) => {
                 if(response.data) {
@@ -27,6 +36,11 @@ const BlogDetailPage = (props) => {
     }
 
     const deleteHeart = (info) => {
+        if(!isLoggedIn){
+            history.push("/signin"); 
+            return
+        }
+
         axios.delete("http://localhost:5000/love",
             {
                 withCredentials: true,
@@ -45,6 +59,10 @@ const BlogDetailPage = (props) => {
     }
 
     const addComment = (info) => {
+        if(!isLoggedIn){
+            history.push("/signin"); 
+            return
+        }
         if(info.content === '') return;
         axios.post("http://localhost:5000/comments", info, {withCredentials: true})
             .then((response) => {
@@ -71,7 +89,10 @@ const BlogDetailPage = (props) => {
     }
 
     const deleteComment = (info) => {
-        
+        if(!isLoggedIn){
+            history.push("/signin"); 
+            return
+        }
         axios.delete("http://localhost:5000/comments", 
         {
             withCredentials: true,
@@ -133,14 +154,13 @@ const BlogDetailPage = (props) => {
                         className="post-comment-button press-button" 
                         src="/post_comment_icon.svg" 
                         onClick={() => {
-                            // console.log(blog);
-                            // addComment({
-                            //     blogID: blog.id,
-                            //     userID: global_user.id,
-                            //     authorName: global_user.name,
-                            //     content: commentContent
-                            // })
-                            props.history.goBack()
+                            console.log(blog);
+                            addComment({
+                                blogID: blog.id,
+                                userID: global_user.id,
+                                authorName: global_user.name,
+                                content: commentContent
+                            })
                         }}
                     />
                 </div>

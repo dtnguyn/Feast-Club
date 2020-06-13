@@ -5,13 +5,18 @@ import ChangeEmailPasswordJumboTron from "./ChangeEmailPasswordJumbotron"
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { useSelector } from "react-redux"
 import axios from 'axios'
-import "../../styles/UserInfoPage.css";
 import FormDialog from "../SharedComponents/FormDialog"
 import {currentUserSignIn } from "../../actions";
 import { useDispatch } from "react-redux";
 import { useHistory } from 'react-router-dom';
 import TabView from './TabView';
+import ComposeDialog from '../ExplorePage/ComposeDialog'
+import ConfirmDialog from '../SharedComponents/ConfirmDialog'
+import Footer from '../SharedComponents/Footer'
 
+
+import "../../styles/UserInfoPage.css";
+import "../../styles/Shared.css";
 
 const UserInfoPage = () => {
 
@@ -25,10 +30,39 @@ const UserInfoPage = () => {
         likedBlogs: []
     });
 
-    const currentUser = useSelector(state => state.currentUser);
+    const [openCompose, setOpenCompose] = useState(false);
+
+    const [deleteDialog, setDeleteDialog] = useState(false);
+
+    const [focusBlog, setFocusBlog] = useState({
+        blogID: '',
+        restaurant: '',
+        blogContent: '',
+        images: []
+    })
+
+    
     const history = useHistory();
+    const isLoggedIn = useSelector(state => state.isLoggedIn)
+    const currentUser = useSelector(state => state.currentUser);
     
     const dispatch = useDispatch();
+
+
+    const resetFocusBlog = () => {
+        setFocusBlog({
+            blogID: '',
+            restaurant: '',
+            blogContent: '',
+            images:[]
+        })
+    }
+
+    
+    
+    if(!isLoggedIn){
+        history.push("/signin"); 
+    }
 
 
     const changeAvatar = (newAvatar) => {
@@ -111,11 +145,62 @@ const UserInfoPage = () => {
         
     }
 
+    const deleteBlog = (blogID) => {
+        axios.delete("http://localhost:5000/blogPosts", {
+            withCredentials: true,
+            params: { 
+                blogID
+            } 
+        })
+            .then(response => {
+                if(response.data){
+                    console.log("Successfully delete a blogpost!");
+                    resetFocusBlog();
+                    getUserBlogs();
+                }
+                    
+            })
+    }
+
+
+    const editBlog = (restaurant, blogContent, files, callback) => {
+        
+        var formData = new FormData();
+        for (const key of Object.keys(files)) {
+            formData.append('imgCollection', files[key])
+        }  
+
+        axios.patch("http://localhost:5000/blogPosts", formData,{
+            withCredentials: true,
+            params: {
+                blogID: focusBlog.blogID,
+                restaurantID: restaurant.id,
+                restaurantName: restaurant.name,
+                restaurantAddress: restaurant.address,
+                city: restaurant.city,
+                country: restaurant.country,
+                blogContent
+            }
+        })
+            .then(response => {
+                if(response.data){
+                    console.log("Successfully edit a blogpost!");
+                    resetFocusBlog();
+                    getUserBlogs();
+                    setOpenCompose(false);
+                    callback(true);
+                }
+                    
+            })
+    }
+
+
+
     const logOut = () => {
         history.push("/signin");
     }
 
-    useEffect(() => {
+    const getUserBlogs = () => {
         axios.get("http://localhost:5000/userblogs", 
         {withCredentials: true})  
             .then((response) => {
@@ -127,10 +212,14 @@ const UserInfoPage = () => {
             .catch((err) => {
                 console.log(err);
             })
+    }
+
+    useEffect(() => {
+        getUserBlogs()
     }, [])
 
     return(
-        <div>
+        <div className="page">
             <InfoNavbar/>
             <div className="user-info-page">
                 {
@@ -203,10 +292,30 @@ const UserInfoPage = () => {
                 <div className="tab-view-container">
                     <TabView
                         blogs={blogs}
+                        focusBlog={focusBlog}
+                        setFocusBlog={setFocusBlog}
+                        resetFocusBlog={resetFocusBlog}
+                        setOpenCompose={setOpenCompose}
+                        setDeleteDialog={setDeleteDialog}
                     />
                 </div>
-                
+                <ComposeDialog 
+                    open={openCompose} 
+                    handleClose={() => {
+                        setOpenCompose(false);
+                        resetFocusBlog();
+                    }} 
+                    focusBlog={focusBlog}
+                    handleEdit={editBlog}
+                />
+                <ConfirmDialog 
+                    open={deleteDialog} 
+                    close={() => setDeleteDialog(false)} 
+                    message="Do you want to delete this post?"
+                    confirmedAction={() => deleteBlog(focusBlog.blogID)}
+                />
             </div>
+            <Footer/>
         </div>
         
     )

@@ -3,7 +3,7 @@
     display: flex;
     align-items: center;
     flex-direction: column;
-
+    overflow:   ;
 }
 
 .user-info-card-container{
@@ -67,4 +67,5 @@
 
 .tab-view-container{
     margin-top: 30px;
+    width: 60vw;
 }

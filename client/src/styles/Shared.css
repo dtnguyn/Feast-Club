@@ -4,14 +4,7 @@
     margin: 20px;
 }
 
-.info-navbar {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 0;
-    background: rgb(235,130,66);
-    background: linear-gradient(90deg, rgba(235,130,66,1) -37%, rgba(246,218,99,1) 100%);
-  }
+
   
   .navbar-icon {
     margin-left: auto;
@@ -81,13 +74,38 @@
 .avatar-image-lg{
     width: 120px;
     height: 120px;
+    overflow: hidden;
 }
 
 .avatar-image-md{
     width: 70px;
     height: 70px;
+    overflow: hidden;
 }
 
 .avatar-image-hover:hover{
     filter: brightness(50%);
+}
+
+
+/* Page Layout */
+
+.info-navbar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+    background: rgb(235,130,66);
+    background: linear-gradient(90deg, rgba(235,130,66,1) -37%, rgba(246,218,99,1) 100%);
+  }
+
+
+
+.page{
+    overflow: hidden;
+}
+
+.footer{
+    width: 100vw;
+    height: 100px;
 }

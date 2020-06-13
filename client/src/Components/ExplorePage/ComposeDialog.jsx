@@ -33,12 +33,21 @@ const ComposeDialog = (props) => {
         var newSources = [];
         var newFiles = []
         for(let i = 0; i < event.target.files.length; i++){
-            newFiles.push(event.target.files[i]);
+            try{
+                newFiles.push(event.target.files[i]);
+            }catch(err){
+                console.log(err);
+            }
+            
         }
         
         console.log("files ", [...files, ...newFiles]);
         for(let i = 0; i < newFiles.length; i++){
-            newSources.push(URL.createObjectURL(newFiles[i]))
+            try{
+                newSources.push(URL.createObjectURL(newFiles[i]))
+            }catch(err){
+                console.log(err);
+            }
         }
         console.log("sources ", [...sources, ...newSources]);
         

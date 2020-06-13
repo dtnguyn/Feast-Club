@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useReducer} from 'react';
-
+import { useHistory } from 'react-router-dom'
 import InfoNavbar from '../SharedComponents/InfoNavbar'
 import { useSelector } from "react-redux";
 import axios from 'axios';
@@ -22,17 +22,16 @@ import '../../styles/Explore.css'
 function ExplorePage(){
     const [cityImage, setCityImage] = useState("");
 
-    const [openCompose, setOpenCompose] = useState(false);
-
     const [blogs, setBlogs] = useState([]);
 
     const [loading, setLoading] = useState(false);
 
     const global_location = useSelector(state => state.userLocation);
 
-    const [deleteDialog, setDeleteDialog] = useState(false);
-
     
+    const [openCompose, setOpenCompose] = useState(false);
+
+    const [deleteDialog, setDeleteDialog] = useState(false);
 
     const [focusBlog, setFocusBlog] = useState({
         blogID: '',
@@ -42,6 +41,16 @@ function ExplorePage(){
     })
 
     const [openLocationForm, setOpenLocationForm] = useState(false);
+
+    const history = useHistory();
+    const isLoggedIn = useSelector(state => state.isLoggedIn)
+  
+    const checkAuthentication = () => {
+        if(!isLoggedIn){
+            history.push("/signin");
+            return false
+        }
+    }
 
     const composeIconStyle = {
         margin: 0,
@@ -277,10 +286,18 @@ function ExplorePage(){
                     isHearted={blog.is_hearted == 1}
                     comments={blog.comments ? blog.comments : 0}
                     requestDeleteBlog={() => {
+                        if(!isLoggedIn){
+                            history.push("/signin");
+                            return
+                        }
                         setFocusBlog({...focusBlog, blogID: blog.id});
                         setDeleteDialog(true);
                     }}
                     triggerEditDialog={() => {
+                        if(!isLoggedIn){
+                            history.push("/signin");
+                            return
+                        }
                         setFocusBlog({
                             blogID: blog.id,
                             restaurant: blog.restaurant_name.concat(", ", blog.restaurant_address),
@@ -292,7 +309,14 @@ function ExplorePage(){
                 />
             })}
             
-            <Fab onClick={() => setOpenCompose(true)} className="fab" style={composeIconStyle}  aria-label="edit">
+            <Fab onClick={() => {
+                if(!isLoggedIn){
+                    history.push("/signin");
+                    return
+                }
+                setOpenCompose(true);
+            }}
+                 className="fab" style={composeIconStyle}  aria-label="edit">
                 <EditIcon className="compose-icon" />
             </Fab>
             <ComposeDialog 

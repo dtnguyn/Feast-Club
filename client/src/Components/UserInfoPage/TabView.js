@@ -36,6 +36,19 @@ const TabView = (props) => {
                                     hearts={blog.hearts ? blog.hearts : 0}
                                     isHearted={blog.is_hearted == 1}
                                     comments={blog.comments ? blog.comments : 0}
+                                    requestDeleteBlog={() => {
+                                        props.setFocusBlog({...props.focusBlog, blogID: blog.id});
+                                        props.setDeleteDialog(true);
+                                    }}
+                                    triggerEditDialog={() => {
+                                        props.setFocusBlog({
+                                            blogID: blog.id,
+                                            restaurant: blog.restaurant_name.concat(", ", blog.restaurant_address),
+                                            blogContent: blog.content,
+                                            images: blog.images == null ? [] : blog.images
+                                        });
+                                        props.setOpenCompose(true);
+                                    }}
                                 />
                             )
                             
@@ -68,6 +81,19 @@ const TabView = (props) => {
                                     hearts={blog.hearts ? blog.hearts : 0}
                                     isHearted={blog.is_hearted == 1}
                                     comments={blog.comments ? blog.comments : 0}
+                                    requestDeleteBlog={() => {
+                                        props.setFocusBlog({...props.focusBlog, blogID: blog.id});
+                                        props.setDeleteDialog(true);
+                                    }}
+                                    triggerEditDialog={() => {
+                                        props.setFocusBlog({
+                                            blogID: blog.id,
+                                            restaurant: blog.restaurant_name.concat(", ", blog.restaurant_address),
+                                            blogContent: blog.content,
+                                            images: blog.images == null ? [] : blog.images
+                                        });
+                                        props.setOpenCompose(true);
+                                    }}
                                 />
                             )
                             
