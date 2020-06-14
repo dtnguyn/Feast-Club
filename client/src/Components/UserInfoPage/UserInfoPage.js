@@ -288,7 +288,11 @@ const UserInfoPage = () => {
                     stopLoading={() => setLoading(false)} 
                     openFormDialog={() => setOpenUserNameDialog(true)}
                 />
-                <ChangeEmailPasswordJumboTron onClick={() => {setOpenVerifyCodeDialog(true)}}/>
+                
+                {currentUser.isOauth 
+                ? null
+                : <ChangeEmailPasswordJumboTron onClick={() => {setOpenVerifyCodeDialog(true)}}/>}
+                
                 <div className="tab-view-container">
                     <TabView
                         blogs={blogs}

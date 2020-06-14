@@ -1,10 +1,9 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import  '../../styles/RestaurantInfoDetail.css';
-import {Carousel, Navbar} from 'react-bootstrap';
 import StarRatings from 'react-star-ratings';
-import axios from 'axios'
 
-import ImageSlide from './ImageSlide';
+
+import ImageSlide from '../SharedComponents/ImageSlide';
 import InfoNavbar from '../SharedComponents/InfoNavbar'
 import MapDirection from './MapDirection'
 import ReviewCard from './ReviewCard'
@@ -15,6 +14,17 @@ function RestaurantInfoDetailPage(props){
     const origin = props.location.state.origin;
     const destination = props.location.state.destination;
 
+    const [images, setImages] = useState([])
+    
+
+    useEffect(() => {
+        var imageUrls = [];
+        restaurant.photos.forEach(({photo_reference}) => {
+            imageUrls.push(`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photo_reference}&key=${process.env.REACT_APP_GOOGLE_API_KEY}`)
+        })
+        console.log("Images after for loop: " + imageUrls)
+        setImages(imageUrls);
+    }, [])
     
 
     function calculatePriceLevels(priceLevel){
@@ -99,7 +109,12 @@ function RestaurantInfoDetailPage(props){
                     
                 </div>
             </div>
-            <ImageSlide photos={restaurant.photos}/>
+
+            <div className="slide-images">
+                <ImageSlide  images={images} size="lg" />
+            </div>
+
+            
             <div className="info-category">
                 <h4 className="info-category-title">Direction</h4>
                 <div className="row">

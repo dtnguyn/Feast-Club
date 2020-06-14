@@ -7,6 +7,9 @@ import { Carousel } from 'react-responsive-carousel';
 
 
 const ImageSlide = ({images, size}) => {
+    console.log("Images: " + images)
+    if(images.length === 0) return null;
+    
     return (
         <div  className={(size == "sm" ? "image-slide-sm" : "image-slide-lg")}>
             <Carousel  dynamicHeight={true} showStatus={false} >
@@ -19,18 +22,6 @@ const ImageSlide = ({images, size}) => {
                 })}
             </Carousel>
         </div>
-
-        // <Carousel>
-        //     {images.map((image, i) => {
-        //             return(
-        //                 <Carousel.Item key={i}>
-        //                     <img alt="" src={image} />
-        //                 </Carousel.Item>
-        //             );
-        //         })}
-        // </Carousel>
-
-        
     )
 }
 

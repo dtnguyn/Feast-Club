@@ -151,6 +151,7 @@ function ExplorePage(){
                     getBlogs();
                     callback(true);
                     setOpenCompose(false)
+                    resetFocusBlog();
                 }
             })
             .catch(err => {

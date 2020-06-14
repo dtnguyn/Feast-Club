@@ -57,12 +57,14 @@
 
 .image-slide-sm {
     margin-right: 20px;
+    margin-left: 20px;
     max-width: 400px !important;
-    max-height: 400px;
 }
 
 .image-slide-lg {
-    margin-right: 20px !important;
+    max-width: 1000px !important;
+    margin-right: 20px;
+    margin-left: 20px;
 }
 
 /** Avatar Image **/

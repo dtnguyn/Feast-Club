@@ -2,14 +2,15 @@
 .restaurant-info-detail-page{
     overflow-x: hidden;
     background-color: #fafafa;
-    width: 100vw;
-    height: 100vh;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
 }
 
 .restaurant-name{
   font-family: BalooBhai-Regular;
   margin-top: 50px;
+  align-self: center;
   font-size: 3rem;
   color: #eb8242;
 }
@@ -17,6 +18,7 @@
 .restaurant-status-icon{
   width: 60px;
   height: 60px;
+  align-self: center;
 }
 
 .info-category-title{
@@ -43,10 +45,8 @@
 }
 
 .slide-images {
-    background-color: #f7e0a3;
-    width: 75%;
-    height: 75%;
-    margin: 30px auto 80px auto;
+  align-self: center;
+  margin-top: 100px;
 }
 
 .carousel-item {
