@@ -8,7 +8,7 @@ import '../../styles/Map.css'
 function InfoBox(props){
     function getDetail() {
       props.startLoading();
-      axios.get("http://localhost:5000/findrestaurantID", {
+      axios.get("http://localhost:5000/restaurants/find/id", {
         withCredentials: true,
         params: {
           textInput: props.restaurantName + " " + props.address,
@@ -17,15 +17,18 @@ function InfoBox(props){
         }
       })
       .then((response) => {
-        console.log(response.data.geometry.location.lat, response.data.geometry.location.lng)
-        const info = {
-          id: response.data.place_id,
-          latLng: {
-            lat: response.data.geometry.location.lat,
-            lng: response.data.geometry.location.lng
+        const apiResponse = response.data
+        if(response.status){
+          const info = {
+            id: apiResponse.data.place_id,
+            latLng: {
+              lat: apiResponse.data.geometry.location.lat,
+              lng: apiResponse.data.geometry.location.lng
+            }
           }
+          props.findSpecificRestaurant(info)
         }
-        props.findSpecificRestaurant(info)
+        
       })
       .catch(err => {
           console.log(err);

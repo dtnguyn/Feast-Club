@@ -21,24 +21,24 @@ function MainPage(props) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const dispatch = useDispatch();
 
-  axios.get("http://localhost:5000/", {withCredentials: true})
-      .then((response) => {
-            const logInStatus = response.data.logInStatus;
-            console.log("logged in: " + logInStatus);
-            if(logInStatus){
-              console.log("Authenticate from session");
-              setIsLoggedIn(true);
-              dispatch(currentUserSignIn(response.data.userInfo));
-              dispatch(signIn());
-            }
-            else
-              history.push("/");        
-      })
-      .catch(err => {
-          console.log(err);
-      })
+  // axios.get("http://localhost:5000/auth", {withCredentials: true})
+  //     .then((response) => {
+  //           const logInStatus = response.data.status;
+  //           console.log("logged in: " + logInStatus);
+  //           if(logInStatus){
+  //             console.log("Authenticate from session");
+  //             setIsLoggedIn(true);
+  //             dispatch(currentUserSignIn(response.data.data));
+  //             dispatch(signIn());
+  //           }
+  //           else
+  //             history.push("/");        
+  //     })
+  //     .catch(err => {
+  //         console.log(err);
+  //     })
 
-  if(!isLoggedIn) return null
+  // if(!isLoggedIn) return null
 
   return (
     <div className="map-container">

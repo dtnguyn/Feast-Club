@@ -14,7 +14,7 @@ function RestaurantInfoDetailPage(props){
     const origin = props.location.state.origin;
     const destination = props.location.state.destination;
 
-    const [images, setImages] = useState([])
+    const [images, setImages] = useState([]);
     
 
     useEffect(() => {
@@ -26,6 +26,8 @@ function RestaurantInfoDetailPage(props){
         setImages(imageUrls);
     }, [])
     
+
+
 
     function calculatePriceLevels(priceLevel){
         switch(priceLevel){
@@ -67,6 +69,7 @@ function RestaurantInfoDetailPage(props){
             );
         }
     }
+
 
     return(
         <div className="restaurant-info-detail-page">

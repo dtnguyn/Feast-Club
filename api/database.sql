@@ -22,6 +22,13 @@ CREATE TABLE user_locations(
    FOREIGN KEY (user_id) REFERENCES oauth_users (id)
 );
 
+CREATE TABLE verify_codes(
+   user_id VARCHAR PRIMARY KEY,
+   code DECIMAL,
+   expire_time TIMESTAMP
+)
+
+
 CREATE TABLE user_ids(
    id VARCHAR(50) PRIMARY KEY,
    email VARCHAR(50) NOT NULL

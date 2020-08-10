@@ -43,7 +43,12 @@ const UserInfoCard = (props) => {
                             onClick={props.openFormDialog}
                         />
                     </p>
-                    <p className="user-info-card-text">0 Posts </p>
+                    {
+                        props.postCount > 1 
+                            ? <p className="user-info-card-text">{props.postCount} Posts </p>
+                            : <p className="user-info-card-text">{props.postCount} Post </p> 
+                    }
+                    
                     <a className="user-info-card-text link" href="#" onClick={() => history.push("/signin")} >Log out</a>
                 </div>
             </div>

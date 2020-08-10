@@ -64,6 +64,32 @@ const UserInfoPage = () => {
         history.push("/signin"); 
     }
 
+    const getVerificationEmail = () => {
+        console.log("Click")
+        axios.get("http://localhost:5000/verify", {withCredentials: true})
+            .then((response) => {
+                if(response.data === true){
+                    setOpenVerifyCodeDialog(true)
+                }
+            })
+    }
+
+    const verifyCode = (fields) => {
+        setLoading(true)
+        const code = fields[0].value;
+        console.log(code)
+        if (code == "") return
+        
+        axios.post("http://localhost:5000/verify", {code}, {withCredentials: true})
+            .then((response) => {
+                setLoading(false)
+                if(response.data === true){
+                    setOpenVerifyCodeDialog(false);
+                    setOpenEmailPasswordDialog(true);
+                } else alert("The code is either wrong or expired!");
+            })
+    }
+
 
     const changeAvatar = (newAvatar) => {
         setLoading(true);
@@ -111,17 +137,7 @@ const UserInfoPage = () => {
             })
     }
 
-    const verifyCode = (fields) => {
-        const code = fields[0].value;
-
-        if(code === "123abc"){
-            setOpenVerifyCodeDialog(false);
-            setOpenEmailPasswordDialog(true);
-        } else {
-            alert("Wrong code!");
-        }
-            
-    }
+    
 
     const changeEmailPassword = (fields) => {
         const newEmail = fields[0].value;
@@ -284,6 +300,7 @@ const UserInfoPage = () => {
                 {loading ? <LinearProgress color="secondary" /> : null}
                 <UserInfoCard 
                     imageAction={changeAvatar}
+                    postCount={blogs.userBlogs.length}
                     startLoading={() => setLoading(true)} 
                     stopLoading={() => setLoading(false)} 
                     openFormDialog={() => setOpenUserNameDialog(true)}
@@ -291,7 +308,7 @@ const UserInfoPage = () => {
                 
                 {currentUser.isOauth 
                 ? null
-                : <ChangeEmailPasswordJumboTron onClick={() => {setOpenVerifyCodeDialog(true)}}/>}
+                : <ChangeEmailPasswordJumboTron onClick={() => {getVerificationEmail()}}/>}
                 
                 <div className="tab-view-container">
                     <TabView

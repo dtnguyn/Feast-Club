@@ -34,7 +34,7 @@ function WindowInfo(props){
 
   function findSpecificRestaurant(info){
       props.startLoading();
-      axios.get("http://localhost:5000/findrestaurant", {
+      axios.get("http://localhost:5000/restaurants/find", {
         withCredentials: true,
         params: {
           id: info.id,
@@ -45,19 +45,18 @@ function WindowInfo(props){
       .then((response) => {
         props.stopLoading();
         console.log("Found it!!!");
-        const result = response.data.result;
+        const apiResponse = response.data;
         console.log(response.data);
         
-        if(result != undefined){
-            console.log("Restaurant is valid");
+        if(apiResponse.status){
             history.push("/info", {
-                restaurant: result,
+                restaurant: apiResponse.data.result,
                 origin: {lat: global_location.latLng.lat, lng: global_location.latLng.lng}, 
                 destination: {lat: info.latLng.lat, lng: info.latLng.lng}
                 
             });
         } else {
-            console.log("Restaurant is valid");
+            console.log("Restaurant is invalid");
             setInvalidSearch(true);
         }
       })

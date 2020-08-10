@@ -27,7 +27,7 @@ function MainPageContent(){
         console.log("Check latLng: " + latLng.lat);
         console.log("Check latLng: " + latLng.lng);
         setLoading(true);
-        axios.get("http://localhost:5000/nearbyrestaurants", {
+        axios.get("http://localhost:5000/restaurants/find/nearby", {
             withCredentials: true,
             params: {
                 lat: latLng.lat,
@@ -35,9 +35,12 @@ function MainPageContent(){
             }
         })
         .then((response) => {
-            console.log(response.data);
-            setRestaurants(response.data);
             setLoading(false);
+            console.log("Nearby restaurants: " + response.data);
+            const apiResponse = response.data
+            if(apiResponse.status){
+                setRestaurants(apiResponse.data);
+            } 
         })
         .catch(err => {
             console.log(err);
@@ -143,7 +146,7 @@ function MainPageContent(){
 
     return(
         <div className="map-container row">
-            <div clasName="map col-md-9 col-sm-12" style={{width: '75.5vw', height: '100vh'}}>
+            <div clasName="col-lg-9 col-md-12" style={{width: '75.5vw', height: '100vh'}}>
             {loading ? <LinearProgress color="secondary" />
             : <WrappedMap
                 googleMapURL={mapUrl}
@@ -153,7 +156,7 @@ function MainPageContent(){
             />}
             </div>
             
-            <div className="window-info col-md-3">
+            <div className="window-info col-lg-3 col-md-12">
                 <WindowInfo 
                     restaurants={restaurants}
                     getNearbyRestaurants={getNearbyRestaurants}

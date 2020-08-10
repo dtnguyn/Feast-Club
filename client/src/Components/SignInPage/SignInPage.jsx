@@ -10,18 +10,18 @@ import { signOut } from "../../actions";
 
 function SignInPage(){
     const dispatch = useDispatch();
-    useEffect(() => {
-        axios.get("http://localhost:5000/logout", {withCredentials: true})  
-            .then((response) => {
-                if(response.data === true){
-                    console.log("Log out successfully");
-                    dispatch(signOut());
-                }
-            })
-            .catch((err) => {
-                console.log(err);
-            })
-    },[])
+    // useEffect(() => {
+    //     axios.get("http://localhost:5000/logout", {withCredentials: true})  
+    //         .then((response) => {
+    //             if(response.data === true){
+    //                 console.log("Log out successfully");
+    //                 dispatch(signOut());
+    //             }
+    //         })
+    //         .catch((err) => {
+    //             console.log(err);
+    //         })
+    // },[])
     return(
         <div className="div-sign-in">
             <Logo/>

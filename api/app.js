@@ -11,7 +11,6 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const pool = require("./db");
 const { uuid } = require('uuidv4');
-const axios = require('axios');
 const nodemailer = require("nodemailer");
 const superagent = require('superagent');
 const cities = require('all-the-cities');
@@ -22,6 +21,11 @@ const nearbyrestaurants = require('./nearbyRestaurants');
 const Multer = require('multer');
 const {Storage} = require('@google-cloud/storage');
 const path = require('path');
+
+
+const auth = require("./routes/auth");
+const restaurants = require("./routes/restaurants");
+
 
 
 // Instantiate a storage client
@@ -39,17 +43,32 @@ const multer = Multer({
     },
   });
 
+
+//   let transporter = nodemailer.createTransport({
+//     host: "server244.web-hosting.com",
+//     port: 465,
+//     secure: true, // true for 465, false for other ports
+//     auth: {
+//       user: process.env.HOST_EMAIL, // generated ethereal user
+//       pass: process.env.HOST_EMAIL_PASSWORD, // generated ethereal password
+//     },
+//   });
+
   
 // A bucket is a container for objects (files).
 const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
 
 
 //To hast password before save in database
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
+//const bcrypt = require('bcrypt');
+const { result } = require('./foundRestaurant');
+//const saltRounds = 10;
 
 const port = 5000;
 const app = express();
+
+app.use("/auth", auth);
+app.use("/restaurants", restaurants);
 
 var logInDataSendBack = {
     logInStatus: false,
@@ -74,221 +93,221 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser(process.env.SESSION_SECRET))
 
 
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false
-}));
+// app.use(session({
+//     secret: process.env.SESSION_SECRET,
+//     resave: false,
+//     saveUninitialized: false
+// }));
 
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 
-passport.use(new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'password'
-  },
-  async function(email, password, done) {
-        user = await findUserByEmail(email);
-        console.log(user);
+// passport.use(new LocalStrategy({
+//     usernameField: 'email',
+//     passwordField: 'password'
+//   },
+//   async function(email, password, done) {
+//         user = await findUserByEmail(email);
+//         console.log(user);
 
-        if (user === undefined) { 
-            console.log("debug1");
-            return done(null, false); 
-        }
+//         if (user === undefined) { 
+//             console.log("debug1");
+//             return done(null, false); 
+//         }
         
-        checkPassword = await verifyPassword(user, password)
-        if(!checkPassword){
-            return done(null, false);
-        } 
+//         checkPassword = await verifyPassword(user, password)
+//         if(!checkPassword){
+//             return done(null, false);
+//         } 
 
-        //setLogInData(true, user.id, "")
-        return done(null, user);
-    }
-));
+//         //setLogInData(true, user.id, "")
+//         return done(null, user);
+//     }
+// ));
 
-passport.serializeUser(function(user, done) {
-    done(null, user);
-  });
+// passport.serializeUser(function(user, done) {
+//     done(null, user);
+//   });
   
-passport.deserializeUser(function(user, done) {
-    findUserByIDToDeserialize(user, done);
-});
+// passport.deserializeUser(function(user, done) {
+//     findUserByIDToDeserialize(user, done);
+// });
 
-//Google Strategy
-passport.use(new GoogleStrategy({
-    clientID: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: "http://localhost:5000/auth/google/feast_club",
-    userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo'
-  },
-  function(accessToken, refreshToken, profile, cb) {
-    console.log("authenticating");
-    findUserByIDOrCreate(profile, cb);
-  }
-));
+// //Google Strategy
+// passport.use(new GoogleStrategy({
+//     clientID: process.env.CLIENT_ID,
+//     clientSecret: process.env.CLIENT_SECRET,
+//     callbackURL: "http://localhost:5000/auth/google/feast_club",
+//     userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo'
+//   },
+//   function(accessToken, refreshToken, profile, cb) {
+//     console.log("authenticating");
+//     findUserByIDOrCreate(profile, cb);
+//   }
+// ));
 
-//Facebook Strategy
-passport.use(new FacebookStrategy({
-    clientID: process.env.FACEBOOK_APP_ID,
-    clientSecret: process.env.FACEBOOK_APP_SECRET,
-    callbackURL: "http://localhost:5000/auth/facebook/feast_club",
-    profileFields: ['id', 'emails', 'name'] 
-  },
-  function(accessToken, refreshToken, profile, cb) {
-    findUserByIDOrCreate(profile, cb);
-  }
-));
+// //Facebook Strategy
+// passport.use(new FacebookStrategy({
+//     clientID: process.env.FACEBOOK_APP_ID,
+//     clientSecret: process.env.FACEBOOK_APP_SECRET,
+//     callbackURL: "http://localhost:5000/auth/facebook/feast_club",
+//     profileFields: ['id', 'emails', 'name'] 
+//   },
+//   function(accessToken, refreshToken, profile, cb) {
+//     findUserByIDOrCreate(profile, cb);
+//   }
+// ));
 
 /* Functions */
 
-async function addUser(name, email, password, res) {
-    try{
-        console.log("Connect to database successfully!")
-        id = await uuid();
-        await pool.query("INSERT INTO users VALUES ($1, $2, $3, $4)", [id, name, email, password]);
-        await pool.query("INSERT INTO user_ids VALUES ($1, $2)", [id, email]);
-        res.send({
-            registerStatus: true,
-            message: ""
-        })
-    } catch (e){
-        console.log(e);
-        res.send({
-            registerStatus: false,
-            message: "Register Unsuccessfully"
-        })
-    } finally {
-        console.log("Client disconnected successfully");
-    }
-}
+// async function addUser(name, email, password, res) {
+//     try{
+//         console.log("Connect to database successfully!")
+//         id = await uuid();
+//         await pool.query("INSERT INTO users VALUES ($1, $2, $3, $4)", [id, name, email, password]);
+//         await pool.query("INSERT INTO user_ids VALUES ($1, $2)", [id, email]);
+//         res.send({
+//             registerStatus: true,
+//             message: ""
+//         })
+//     } catch (e){
+//         console.log(e);
+//         res.send({
+//             registerStatus: false,
+//             message: "Register Unsuccessfully"
+//         })
+//     } finally {
+//         console.log("Client disconnected successfully");
+//     }
+// }
 
 
-async function addOauthUser(id, email, name) {
-    try{
-        console.log("Connect to database successfully!")
-        await pool.query("INSERT INTO oauth_users VALUES ($1, $2, $3)", [id, name, email]);
-        await pool.query("INSERT INTO user_ids VALUES ($1, $2)", [id, email]);
+// async function addOauthUser(id, email, name) {
+//     try{
+//         console.log("Connect to database successfully!")
+//         await pool.query("INSERT INTO oauth_users VALUES ($1, $2, $3)", [id, name, email]);
+//         await pool.query("INSERT INTO user_ids VALUES ($1, $2)", [id, email]);
 
-    } catch (e){
-        console.log(e);
-        await pool.query("ROLL BACK");
-    } finally {
-        console.log("Client disconnected successfully");
-    }
-}
-
-
-
-async function findUserByEmail(email) {
-    try{
-        console.log("Connect to database successfully!");
-        const table = await pool.query("SELECT id, name, email, password, avatar FROM users WHERE email = $1", [email]);
-        if (table.rows[0] != undefined){ // if there is a match email
-            return user = {
-                id: table.rows[0].id,
-                email: table.rows[0].email,
-                name: table.rows[0].name,
-                password: table.rows[0].password,
-                avatar: table.rows[0].avatar,
-                isOauth: false
-            }
-        } else { // if there is no match email
-            console.log("no founded user")
-        }  
-    } catch (e){
-        console.log(e);
-    } finally {
-        console.log("Client disconnected successfully");
-    }
-}
-
-async function findUserByIDOrCreate(profile, done) {
-    try{
-        console.log("Connect to database successfully!");
-        const table = await pool.query("SELECT id, name, email, avatar FROM oauth_users WHERE id = $1", [profile.id]);
-        console.log("find or create: ", table.rows);
-        if (table.rows.length != 0 && table.rows[0] != undefined){ // if there is a match id
-            const user = {
-                id: table.rows[0].id,
-                name: table.rows[0].name,
-                email: table.rows[0].email,
-                avatar: table.rows[0].avatar,
-                isOauth: true
-            }
-            //setLogInData(true, user.id, "");
-            return done(null, user)
-        } else { // if there is no match id
-            console.log("no founded user here");
-            console.log(profile)
-            const user = {
-                id: profile.id,
-                name: profile.displayName || profile.name.givenName + " " + profile.name.familyName,
-                email: profile.emails[0].value,
-            }
-            addOauthUser(user.id, user.email, user.name);
-            done(null, user);
-        }  
-    } catch (e){
-        console.log("error here");
-        return done(e, false);
-    } finally {
-        console.log("Client disconnected successfully");
-    }
-}
+//     } catch (e){
+//         console.log(e);
+//         await pool.query("ROLL BACK");
+//     } finally {
+//         console.log("Client disconnected successfully");
+//     }
+// }
 
 
-async function findUserByIDToDeserialize(user, done) {
-    const id = user.id;
-    try{
-        console.log("Connect to database successfully!");
-        console.log("id: " + id);
-        const table = await pool.query("SELECT id, name, email, password FROM users WHERE id = $1", [id]);
-        const oauthTable = await pool.query("SELECT id, name, email FROM oauth_users WHERE id = $1", [id]);
-        if (table.rows.length != 0 && table.rows[0] != undefined){ // if there is a match id
-            const user = {
-                id: table.rows[0].id,
-                email: table.rows[0].email,
-                name: table.rows[0].name,
-                password: table.rows[0].password,
-            }
-            return done(null, user);
-        } else if(oauthTable.rows.length != 0 && oauthTable.rows[0] != undefined) {
-            console.log(oauthTable.rows[0].name);
-            const user = {
-                id: oauthTable.rows[0].id,
-                name: oauthTable.rows[0].name,
-                email: oauthTable.rows[0].email,
-            }
-            //setLogInData(true, user.id, "");
-            return done(null, user);
-        } else { // if there is no match id
-            console.log("no founded user");
-            done(null, false);
-        }  
-    } catch (e){
-        console.log("error here");
-        return done(e, false);
-    } finally {
-        console.log("Client disconnected successfully");
-    }
-}
 
-async function verifyPassword(user, typedInPassword){
-    try{
-        const result = await bcrypt.compare(typedInPassword, user.password);
-        return result;
-    }catch(e){
-        console.log(e);
-    }
+// async function findUserByEmail(email) {
+//     try{
+//         console.log("Connect to database successfully!");
+//         const table = await pool.query("SELECT id, name, email, password, avatar FROM users WHERE email = $1", [email]);
+//         if (table.rows[0] != undefined){ // if there is a match email
+//             return user = {
+//                 id: table.rows[0].id,
+//                 email: table.rows[0].email,
+//                 name: table.rows[0].name,
+//                 password: table.rows[0].password,
+//                 avatar: table.rows[0].avatar,
+//                 isOauth: false
+//             }
+//         } else { // if there is no match email
+//             console.log("no founded user")
+//         }  
+//     } catch (e){
+//         console.log(e);
+//     } finally {
+//         console.log("Client disconnected successfully");
+//     }
+// }
+
+// async function findUserByIDOrCreate(profile, done) {
+//     try{
+//         console.log("Connect to database successfully!");
+//         const table = await pool.query("SELECT id, name, email, avatar FROM oauth_users WHERE id = $1", [profile.id]);
+//         console.log("find or create: ", table.rows);
+//         if (table.rows.length != 0 && table.rows[0] != undefined){ // if there is a match id
+//             const user = {
+//                 id: table.rows[0].id,
+//                 name: table.rows[0].name,
+//                 email: table.rows[0].email,
+//                 avatar: table.rows[0].avatar,
+//                 isOauth: true
+//             }
+//             //setLogInData(true, user.id, "");
+//             return done(null, user)
+//         } else { // if there is no match id
+//             console.log("no founded user here");
+//             console.log(profile)
+//             const user = {
+//                 id: profile.id,
+//                 name: profile.displayName || profile.name.givenName + " " + profile.name.familyName,
+//                 email: profile.emails[0].value,
+//             }
+//             addOauthUser(user.id, user.email, user.name);
+//             done(null, user);
+//         }  
+//     } catch (e){
+//         console.log("error here");
+//         return done(e, false);
+//     } finally {
+//         console.log("Client disconnected successfully");
+//     }
+// }
+
+
+// async function findUserByIDToDeserialize(user, done) {
+//     const id = user.id;
+//     try{
+//         console.log("Connect to database successfully!");
+//         console.log("id: " + id);
+//         const table = await pool.query("SELECT id, name, email, password FROM users WHERE id = $1", [id]);
+//         const oauthTable = await pool.query("SELECT id, name, email FROM oauth_users WHERE id = $1", [id]);
+//         if (table.rows.length != 0 && table.rows[0] != undefined){ // if there is a match id
+//             const user = {
+//                 id: table.rows[0].id,
+//                 email: table.rows[0].email,
+//                 name: table.rows[0].name,
+//                 password: table.rows[0].password,
+//             }
+//             return done(null, user);
+//         } else if(oauthTable.rows.length != 0 && oauthTable.rows[0] != undefined) {
+//             console.log(oauthTable.rows[0].name);
+//             const user = {
+//                 id: oauthTable.rows[0].id,
+//                 name: oauthTable.rows[0].name,
+//                 email: oauthTable.rows[0].email,
+//             }
+//             //setLogInData(true, user.id, "");
+//             return done(null, user);
+//         } else { // if there is no match id
+//             console.log("no founded user");
+//             done(null, false);
+//         }  
+//     } catch (e){
+//         console.log("error here");
+//         return done(e, false);
+//     } finally {
+//         console.log("Client disconnected successfully");
+//     }
+// }
+
+// async function verifyPassword(user, typedInPassword){
+//     try{
+//         const result = await bcrypt.compare(typedInPassword, user.password);
+//         return result;
+//     }catch(e){
+//         console.log(e);
+//     }
     
-}
+// }
 
-function setLogInData(status, id, message){
-    logInDataSendBack.logInStatus = true;
-    logInDataSendBack.id = id;
-    logInDataSendBack.message = message;
-}
+// function setLogInData(status, id, message){
+//     logInDataSendBack.logInStatus = true;
+//     logInDataSendBack.id = id;
+//     logInDataSendBack.message = message;
+// }
 
 
 function getNearbyRestaurantsByGoogle(lat, lng, response){
@@ -345,21 +364,21 @@ function getNearbyRestaurantsByTripsAdvisor(lat,lng, response){
 
 
 function getSpecificRestaurant(id, lat, lng, response){
-    // console.log("Finding restaurants.... " + id);
-    // const input = "205 Phan Xich Long Ward 2, Phu Nhuan Dist., Ho Chi Minh City Vietnam"
+    console.log("Finding restaurants.... " + id);
+    const input = "205 Phan Xich Long Ward 2, Phu Nhuan Dist., Ho Chi Minh City Vietnam"
 
-    // const req = unirest("GET", "https://maps.googleapis.com/maps/api/place/details/json?place_id=" + id + "&fields=name,rating,formatted_phone_number,icon,photo,formatted_address,opening_hours,website,price_level,rating,review,user_ratings_total&key=" + process.env.GOOGLE_API_KEY);
+    const req = unirest("GET", "https://maps.googleapis.com/maps/api/place/details/json?place_id=" + id + "&fields=name,rating,formatted_phone_number,icon,photo,formatted_address,opening_hours,website,price_level,rating,review,user_ratings_total&key=" + process.env.GOOGLE_API_KEY);
 
 
-    // req.end(function (res) {
-    //     if (res.error) throw new Error(res.error);
-    //     console.log(util.inspect(res.body, {showHidden: false, depth: null}))
-    //     response.send(res.body);
+    req.end(function (res) {
+        if (res.error) throw new Error(res.error);
+        console.log(util.inspect(res.body, {showHidden: false, depth: null}))
+        response.send(res.body);
 
-    // });
+    });
     
     //findOrInsertRestaurantsInDatabase("ChIJ_3lMQdAodTERNMFuONVSmWw", testRestaurant);
-    response.send(testRestaurant);   
+    //response.send(testRestaurant);   
 }
 
 // function findOrInsertRestaurantsInDatabase(id, restaurant){
@@ -1111,6 +1130,106 @@ async function editUserAvatar(userID, url, isOauth, callback){
     }
 }
 
+// async function sendEmail(email, code){
+//     // create reusable transporter object using the default SMTP transport
+//     try{
+//         // send mail with defined transport object
+//         let info = await transporter.sendMail({
+//             from: '"Verify Code" <verification@fcauth.com>', // sender address
+//             to: email, // list of receivers
+//             subject: "Use this code to verify your account!", // Subject line
+//             text: `This is your code: ${code}`  // plain text body
+//         });
+
+//         console.log("Message sent: %s", info.messageId);
+//         // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+
+//         // Preview only available when sending through an Ethereal account
+//         console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+//         // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+//     } catch (err){
+//         console.log(err);
+//     }
+    
+// }
+
+// function addMinutesToCurrentTime(date, minutes) {
+//     return new Date(date.getTime() + minutes * 60000);
+// }
+
+// async function insertOrUpdateVerifyCode(userId, email, callback){
+//     try{
+//         console.log("--------------------------");
+//         console.log("Inserting new code to database");
+
+//         let result = await pool.query ("SELECT * FROM verify_codes WHERE user_id = $1",[userId])
+//         let code = Math.floor(Math.random() * 899999) + 100000
+
+//         if(result.rowCount == 1){
+//             let table = await pool.query
+//             (
+//                 "UPDATE verify_codes SET " +
+//                 "code = $1, " +
+//                 "expire_time = $2 " +
+//                 "WHERE user_id = $3"
+//                 , [code, addMinutesToCurrentTime(new Date(), 5), userId]
+//             )
+//             if (table.rowCount == 1){
+//                 console.log("Success");
+//                 sendEmail(email, code);
+//                 callback(true)
+//             } else {
+//                 console.log("Fail: " + table.rowCount)
+//                 callback(false)
+//             }
+//         } else if(result.rowCount == 0) {
+//             let table = await pool.query
+//             (
+//                 "INSERT INTO verify_codes (user_id, code, expire_time) VALUES($1, $2, $3)"
+//                 , [userId, code, addMinutesToCurrentTime(new Date(), 5)]
+//             )
+//             if (table.rowCount == 1){
+//                 console.log("Success");
+//                 sendEmail(email, code);
+//                 callback(true)
+//             } else {
+//                 console.log("Fail: " + table.rowCount)
+//                 callback(false)
+//             }
+//         }
+//     } catch(error){
+//         console.log("Fail: " + error)
+//     }
+// }
+
+
+// async function verifyCode(userId, code, callback){
+//     try{
+//         console.log("--------------------------");
+//         console.log("Verifying code the user typed in...");
+
+//         let result = await pool.query ("SELECT * FROM verify_codes WHERE user_id = $1 AND code = $2",[userId, code])
+//         if(result.rowCount == 1){
+//             console.log("Success!")
+//             if(result.rows[0].expire_time > new Date()) callback(true)
+//             else callback(false)
+//         } else {
+//             console.log("Fail: " + result.rowCount)
+//             callback(false)
+//         }
+//     } catch(error){
+//         console.log("Fail: " + error);
+//     }
+// }
+
+const apiResponse = (code, message, status, data) => {
+    return({
+        code,
+        message,
+        status,
+        data
+    })
+}
 
 
 
@@ -1118,75 +1237,77 @@ async function editUserAvatar(userID, url, isOauth, callback){
 
 /* GET routes */
 
-app.get("/", (req, res) => {
-    console.log("/ ", req.isAuthenticated());
-    if(req.isAuthenticated()){
-        console.log("Hello User ", req.session.passport.user);
-        res.send({
-            logInStatus: true,
-            message: "",
-            userInfo: {
-                id: req.session.passport.user.id,
-                name: req.session.passport.user.name,
-                email: req.session.passport.user.email,
-                avatar: req.session.passport.user.avatar,
-                isOauth: req.session.passport.user.isOauth
-            }
-        })
-        console.log("is authenticated");
-    } else res.send();
-});
+// app.get("/", (req, res) => {
+//     console.log("/ ", req.isAuthenticated());
+//     if(req.isAuthenticated()){
+//         console.log("Hello User ", req.session.passport.user);
+//         res.send({
+//             logInStatus: true,
+//             message: "",
+            
+//         })
+//         const userinfo = {
+//             id: req.session.passport.user.id,
+//             name: req.session.passport.user.name,
+//             email: req.session.passport.user.email,
+//             avatar: req.session.passport.user.avatar,
+//             isOauth: req.session.passport.user.isOauth
+//         }
+//         res.send(apiResponse(200, "Successfully Authenticated", true, userinfo))
+//         console.log("is authenticated");
+//     } else res.send(apiResponse(401, "You haven't logged in!", false, null));
+// });
 
-app.get("/logout", (req, res) => {
-    console.log("Logging out");
-    console.log(req.isAuthenticated());
-    req.session.destroy();
-    req.logout();
-    console.log(req.isAuthenticated());
-    res.send(true); 
-})
+// app.get("/logout", (req, res) => {
+//     console.log("Logging out");
+//     console.log(req.isAuthenticated());
+//     req.session.destroy();
+//     req.logout();
+//     console.log(req.isAuthenticated());
+//     res.send(true); 
+// })
 
-app.get('/auth/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] }));
+// app.get('/auth/google',
+//   passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-app.get('/auth/google/feast_club', 
-  passport.authenticate('google'),
-  function(req, res) {
-    // Successful authentication, redirect home.
-    res.status(301).redirect('http://localhost:3000/mainPage');
-});
+// app.get('/auth/google/feast_club', 
+//   passport.authenticate('google'),
+//   function(req, res) {
+//     // Successful authentication, redirect home.
+//     res.status(301).redirect('http://localhost:3000/mainPage');
+// });
 
-app.get('/auth/facebook',
-  passport.authenticate('facebook', { scope : ['email'] }));
+// app.get('/auth/facebook',
+//   passport.authenticate('facebook', { scope : ['email'] }));
 
 
-app.get('/auth/facebook/feast_club',
-  passport.authenticate('facebook'),
-  function(req, res) {
-    // Successful authentication, redirect home.
-    res.status(301).redirect('http://localhost:3000/mainPage');
-  });
+// app.get('/auth/facebook/feast_club',
+//   passport.authenticate('facebook'),
+//   function(req, res) {
+//     // Successful authentication, redirect home.
+//     res.status(301).redirect('http://localhost:3000/mainPage');
+//   });
 
-app.get('/nearbyrestaurants', function(req, res){
-    console.log(req.session);
-    console.log(req.query);
-    if(req.isAuthenticated()){
-        getNearbyRestaurantsByTripsAdvisor(req.query.lat, req.query.lng, res);
-    }
-});
+// app.get('/nearbyrestaurants', function(req, res){
+//     console.log(req.session);
+//     console.log(req.query);
+//     if(req.isAuthenticated()){
+//         getNearbyRestaurantsByTripsAdvisor(req.query.lat, req.query.lng, res);
+//     }
+// });
 
-app.get('/findrestaurantID', function(req, res){
-    console.log(req.query)
-    if(req.isAuthenticated()){
-        getRestaurantID(req.query.textInput, req.query.lat, req.query.lng, res)
-    }
-})
+// app.get('/findrestaurantID', function(req, res){
+//     console.log(req.query)
+//     if(req.isAuthenticated()){
+//         getRestaurantID(req.query.textInput, req.query.lat, req.query.lng, res)
+//     }
+// })
 
-app.get('/findrestaurant', function(req, res){
-    if(req.isAuthenticated()){
-        getSpecificRestaurant(req.query.id, req.query.lat, req.query.lng, res)
-    }
-});
+// app.get('/findrestaurant', function(req, res){
+//     if(req.isAuthenticated()){
+//         getSpecificRestaurant(req.query.id, req.query.lat, req.query.lng, res)
+//     }
+// });
 
 app.get('/cityImage', function(req, res){
     getImageForCity(req.query.city, res)
@@ -1228,46 +1349,57 @@ app.get('/comments', (req, res) => {
     }
 })
 
+// app.get('/verify', (req, res) => {
+//     console.log("getting code...")
+//     if(req.isAuthenticated()){
+//         insertOrUpdateVerifyCode(req.session.passport.user.id, req.session.passport.user.email, (result) => {
+//             res.send(result)
+//         })
+//     }
+// })
+
+
+
 /* POST routes */
 
-app.post("/register", (req, res) =>{
-    const name = req.body.name;
-    const email = req.body.email;
-    const password = req.body.password;
+// app.post("/register", (req, res) =>{
+//     const name = req.body.name;
+//     const email = req.body.email;
+//     const password = req.body.password;
 
-    bcrypt.hash(password, saltRounds, function(err,hash){
-        if(!err){
-            addUser(name, email, hash, res);
-        } else {+
-            console.log(err);
-        }
-    })
-});
+//     bcrypt.hash(password, saltRounds, function(err,hash){
+//         if(!err){
+//             addUser(name, email, hash, res);
+//         } else {+
+//             console.log(err);
+//         }
+//     })
+// });
 
-app.post('/signin' ,(req, res, next) =>{
-    passport.authenticate('local', function(err, user, info) {
-        if (err) { 
-            console.log(err);
-            return next(err);
-        }
-        if (!user) { 
-            console.log("no user");
-            return res.send({
-                logInStatus: false,
-                message: "Invalid email and/or password!"
-            })
-        }
-        req.logIn(user, function(err) {
-            console.log("Before redirect: " + req.session.passport);
-            console.log(user);
-            if (err) { 
-                console.log(err);
-                return next(err); 
-            }
-            return res.redirect('/');
-        });
-      })(req, res, next);
- });
+// app.post('/signin' ,(req, res, next) =>{
+//     passport.authenticate('local', function(err, user, info) {
+//         if (err) { 
+//             console.log(err);
+//             return next(err);
+//         }
+//         if (!user) { 
+//             console.log("no user");
+//             return res.send({
+//                 logInStatus: false,
+//                 message: "Invalid email and/or password!"
+//             })
+//         }
+//         req.logIn(user, function(err) {
+//             console.log("Before redirect: " + req.session.passport);
+//             console.log(user);
+//             if (err) { 
+//                 console.log(err);
+//                 return next(err); 
+//             }
+//             return res.redirect('/');
+//         });
+//       })(req, res, next);
+//  });
 
 app.post('/savelocation', (req,res) => {
     const id = req.session.passport.user;
@@ -1317,6 +1449,14 @@ app.post('/comments', (req, res) => {
     }
 })
 
+// app.post('/verify', (req, res) => {
+//     if(req.isAuthenticated()){
+//         console.log(req.body.code)
+//         verifyCode(req.session.passport.user.id, req.body.code, (result) => {
+//             res.send(result);
+//         })
+//     }
+// })
 
 
 //Update Routes
@@ -1358,7 +1498,6 @@ app.patch('/userSettings/emailAndPassword', (req, res) => {
             }
         })
     }
-    
 })
 
 app.patch('/userSettings/avatar', multer.single('image') ,(req, res, next) => {

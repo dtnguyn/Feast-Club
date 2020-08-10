@@ -55,19 +55,14 @@ function SignInBox(){
         event.preventDefault();
 
     
-        axios.post("http://localhost:5000/signin", logInUser, {withCredentials: true})
+        axios.post("http://localhost:5000/auth/signin", logInUser, {withCredentials: true})
             .then((response) => {
-                const logInStatus = response.data.logInStatus;
+                const logInStatus = response.data.status;
                 const messageSendBack = response.data.message;
-                const mainPageData = {
-                    location: response.data.provideLocation,
-                    nearbyRestaurants: response.data.nearbyRestaurants
-                }
-                console.log(mainPageData);
                 if(logInStatus){
-                    console.log(response.data.userInfo);
+                    console.log(response.data.data);
                     dispatch(signIn());
-                    dispatch(currentUserSignIn(response.data.userInfo));
+                    dispatch(currentUserSignIn(response.data.data));
                     history.push("/mainPage");
                 } else{
                     setMessage(messageSendBack);

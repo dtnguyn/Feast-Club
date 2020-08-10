@@ -103,6 +103,12 @@
     align-items: stretch;
 }
 
+@media (max-width: 1000px){
+    .blog-post{
+        width: 80vw;
+    }
+}
+
 .compose-date {
     color: #545454;
     align-self: flex-start;
