@@ -79,33 +79,32 @@ function ExplorePage(){
 
     function getCityImage(city){
         setLoading(true);
-        axios.get("http://localhost:5000/cityImage", {
+        axios.get("http://localhost:5000/blogs/cityImage", {
             params: {
                 city: city
             }
         })
             .then((response) => {
-                if (response.data.hits.length === 0) {
+                setLoading(false);
+                const apiResponse = response.data
+                console.log("image response: " + apiResponse.data)
+                if (!apiResponse.status || apiResponse.data.hits.length === 0) {
                     setCityImage("https://bgfons.com/uploads/city/city_texture6440.jpg");
                 } else {
-                    const randomIndex = Math.floor((Math.random() * response.data.hits.length));
-                    console.log(response.data.hits);
-                    console.log(randomIndex);
-                    setCityImage(response.data.hits[randomIndex].largeImageURL);
+                    const randomIndex = Math.floor((Math.random() * apiResponse.data.hits.length));
+                    setCityImage(apiResponse.data.hits[randomIndex].largeImageURL);
                 }
-                setLoading(false);
             })
             .catch(err => {
-                console.log(err);
+                alert(err)
                 setCityImage("https://bgfons.com/uploads/city/city_texture6440.jpg");
                 setLoading(false);
             })
     }
 
     const getBlogs = () => {
-
         setLoading(true);
-        axios.get("http://localhost:5000/blogPosts", {
+        axios.get("http://localhost:5000/blogs/", {
             withCredentials: true,
             params: {
                 city: global_location.city,
@@ -113,8 +112,14 @@ function ExplorePage(){
             }
         })
             .then((response) => {
+                const apiResponse = response.data
                 console.log("response: " +  response.data);
-                setBlogs(response.data);
+                if(apiResponse.status){
+                    setBlogs(apiResponse.data);
+                } else {
+                    alert(apiResponse.message);
+                }
+                
                 setLoading(false)
             }) 
             .catch((err) => {
@@ -129,7 +134,7 @@ function ExplorePage(){
             formData.append('imgCollection', files[key])
         }
 
-        axios.post("http://localhost:5000/blogPosts", formData ,  {
+        axios.post("http://localhost:5000/blogs/", formData ,  {
             headers: {
               'accept': 'application/json',
               'Accept-Language': 'en-US,en;q=0.8',
@@ -147,27 +152,35 @@ function ExplorePage(){
 
         })
             .then((response) => {
-                if(response.data){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     getBlogs();
                     callback(true);
                     setOpenCompose(false)
                     resetFocusBlog();
+                } else if(apiResponse.code = 401) {
+                    history.push("/signin");
+                } else {
+                    alert(apiResponse.message)
                 }
             })
             .catch(err => {
+                alert(err)
                 console.log(err);
             })
+
     }
 
     const deleteBlog = (blogID) => {
-        axios.delete("http://localhost:5000/blogPosts", {
-            withCredentials: true,
-            params: { 
-                blogID
-            } 
-        })
+        axios.delete("http://localhost:5000/blogs", {
+                withCredentials: true,
+                params: { 
+                    blogID
+                } 
+            })
             .then(response => {
-                if(response.data){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     console.log("Successfully delete a blogpost!");
                     resetFocusBlog();
                     getBlogs();
@@ -184,7 +197,7 @@ function ExplorePage(){
             formData.append('imgCollection', files[key])
         }  
 
-        axios.patch("http://localhost:5000/blogPosts", formData,{
+        axios.patch("http://localhost:5000/blogs/", formData,{
             withCredentials: true,
             params: {
                 blogID: focusBlog.blogID,
@@ -197,7 +210,8 @@ function ExplorePage(){
             }
         })
             .then(response => {
-                if(response.data){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     console.log("Successfully edit a blogpost!");
                     resetFocusBlog();
                     getBlogs();
@@ -219,7 +233,7 @@ function ExplorePage(){
             cancelToken.cancel();
         } 
         cancelToken = createCancelToken();
-        axios.get("http://localhost:5000/blogPosts/search", {
+        axios.get("http://localhost:5000/blogs/search", {
             withCredentials: true,
             cancelToken: cancelToken.token,
             params: {
@@ -229,9 +243,15 @@ function ExplorePage(){
             }
         })
             .then((response) => {
-                console.log("response: " +  response.data);
-                setBlogs(response.data);
+                const apiResponse = response.data
                 setLoading(false)
+                if(apiResponse.status){
+                    setBlogs(apiResponse.data);
+                } else {
+                    alert(apiResponse.message)
+                }
+                
+                
             }) 
             .catch((err) => {
                 if (axios.isCancel(err)) {

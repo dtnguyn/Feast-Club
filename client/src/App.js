@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import HomePage from "./Components/HomePage/HomePage"
+
 import RegisterPage from "./Components/RegisterPage/RegisterPage"
 import SignInPage from "./Components/SignInPage/SignInPage"
 import MainPage from "./Components/MainPage/MainPage"
@@ -25,11 +25,10 @@ function App(props) {
     <Router 
       style={{overflow: Hidden}}
     >
-      <Route path="/" exact component={HomePage} />
+      <Route path="/" exact component={MainPage} />
       <Route path="/register" exact component={RegisterPage} />
       <Route path="/register/status" component={RegisterStatusPage}/>
       <Route path="/signin" component={SignInPage} />
-      <Route path="/mainPage" component={MainPage}/>
       <Route path="/info" component={RestaurantInfoDetailPage}/>
       <Route path="/explore" component={ExplorePage}/>
       <Route path="/bloginfo" component={BlogDetailPage}/>

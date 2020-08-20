@@ -2,6 +2,23 @@ const express = require("express");
 const router = express.Router();
 const cors = require('cors');
 const unirest = require("unirest");
+const cookieParser = require('cookie-parser');
+const passport = require('passport');
+const session = require('express-session');
+
+
+//Passport config
+router.use(cookieParser(process.env.SESSION_SECRET))
+
+router.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false
+}));
+
+router.use(passport.initialize());
+router.use(passport.session());
+
 
 router.use(cors({
     origin: "http://localhost:3000",
@@ -21,6 +38,32 @@ const apiResponse = (code, message, status, data) => {
 }
 
 const nearbyrestaurants = require('../nearbyRestaurants');
+
+
+
+// function getNearbyRestaurantsByGoogle(lat, lng, response){
+//     console.log(lat, lng);
+//     var url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+ lat + "," + lng + "&radius=1500&type=restaurant&key=" + process.env.GOOGLE_API_KEY;
+
+//     superagent.get(url).end((err, res) => {
+//         if (err) 
+//             return console.log(err); 
+//         else {
+//             const latLng = {
+//                 lat: lat,
+//                 lng: lng
+//             }
+//             //console.log(res.body);
+//             console.log(util.inspect(res.body, {showHidden: false, depth: null}));
+//             response.send({
+//                 location: latLng,
+//                 restaurants: res.body
+//             });
+//         }
+        
+        
+//     });
+// }
 
 
 function getNearbyRestaurantsByTripsAdvisor(lat,lng, callback){

@@ -23,16 +23,15 @@ const {Storage} = require('@google-cloud/storage');
 const path = require('path');
 
 
-const auth = require("./routes/auth");
-const restaurants = require("./routes/restaurants");
+
 
 
 
 // Instantiate a storage client
-const storage = new Storage({
-    projectId: "feast-club",
-    keyFilename: path.join(__dirname, "./feast-club-0c7e5bcc3a76.json")
-});
+// const storage = new Storage({
+//     projectId: "feast-club",
+//     keyFilename: path.join(__dirname, "./feast-club-0c7e5bcc3a76.json")
+// });
 
 //console.log(bucket)
 
@@ -56,7 +55,7 @@ const multer = Multer({
 
   
 // A bucket is a container for objects (files).
-const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
+// const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET);
 
 
 //To hast password before save in database
@@ -67,8 +66,7 @@ const { result } = require('./foundRestaurant');
 const port = 5000;
 const app = express();
 
-app.use("/auth", auth);
-app.use("/restaurants", restaurants);
+
 
 var logInDataSendBack = {
     logInStatus: false,
@@ -93,14 +91,25 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser(process.env.SESSION_SECRET))
 
 
-// app.use(session({
-//     secret: process.env.SESSION_SECRET,
-//     resave: false,
-//     saveUninitialized: false
-// }));
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false
+}));
 
-// app.use(passport.initialize());
-// app.use(passport.session());
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+const {auth} = require("./routes/auth");
+const restaurants = require("./routes/restaurants");
+const blogs = require("./routes/blogs")
+const user = require("./routes/user")
+
+app.use("/restaurants", restaurants);
+app.use("/blogs", blogs)
+app.use("/auth", auth);
+app.use("/user", user)
 
 
 // passport.use(new LocalStrategy({
@@ -310,76 +319,54 @@ app.use(cookieParser(process.env.SESSION_SECRET))
 // }
 
 
-function getNearbyRestaurantsByGoogle(lat, lng, response){
-    console.log(lat, lng);
-    var url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location="+ lat + "," + lng + "&radius=1500&type=restaurant&key=" + process.env.GOOGLE_API_KEY;
 
-    superagent.get(url).end((err, res) => {
-        if (err) 
-            return console.log(err); 
-        else {
-            const latLng = {
-                lat: lat,
-                lng: lng
-            }
-            //console.log(res.body);
-            console.log(util.inspect(res.body, {showHidden: false, depth: null}));
-            response.send({
-                location: latLng,
-                restaurants: res.body
-            });
-        }
-        
-        
-    });
-}
 
-function getNearbyRestaurantsByTripsAdvisor(lat,lng, response){
-    // var req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
+// function getNearbyRestaurantsByTripsAdvisor(lat,lng, response){
+//     // var req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
 
-    // req.query({
-    //     "limit": "30",
-    //     "currency": "USD",
-    //     "distance": "2",
-    //     "lunit": "km",
-    //     "lang": "en_US",
-    //     "latitude": lat,
-    //     "longitude": lng
-    // });
+//     // req.query({
+//     //     "limit": "30",
+//     //     "currency": "USD",
+//     //     "distance": "2",
+//     //     "lunit": "km",
+//     //     "lang": "en_US",
+//     //     "latitude": lat,
+//     //     "longitude": lng
+//     // });
     
-    // req.headers({
-    //     "x-rapidapi-host": "tripadvisor1.p.rapidapi.com",
-    //     "x-rapidapi-key": process.env.TRIP_ADVISOR_API_KEY
-    // });
+//     // req.headers({
+//     //     "x-rapidapi-host": "tripadvisor1.p.rapidapi.com",
+//     //     "x-rapidapi-key": process.env.TRIP_ADVISOR_API_KEY
+//     // });
     
     
-    // req.end(function (res) {
-    //     if (res.error) throw new Error(res.error);
-    //     response.send(res.body);
-    // });
+//     // req.end(function (res) {
+//     //     if (res.error) throw new Error(res.error);
+//     //     response.send(res.body);
+//     // });
      
-    response.send(nearbyrestaurants);
+//     response.send(nearbyrestaurants);
     
-}
+// }
 
 
-function getSpecificRestaurant(id, lat, lng, response){
-    console.log("Finding restaurants.... " + id);
-    const input = "205 Phan Xich Long Ward 2, Phu Nhuan Dist., Ho Chi Minh City Vietnam"
+// function getSpecificRestaurant(id, lat, lng, response){
+//     console.log("Finding restaurants.... " + id);
+//     const input = "205 Phan Xich Long Ward 2, Phu Nhuan Dist., Ho Chi Minh City Vietnam"
 
-    const req = unirest("GET", "https://maps.googleapis.com/maps/api/place/details/json?place_id=" + id + "&fields=name,rating,formatted_phone_number,icon,photo,formatted_address,opening_hours,website,price_level,rating,review,user_ratings_total&key=" + process.env.GOOGLE_API_KEY);
+//     const req = unirest("GET", "https://maps.googleapis.com/maps/api/place/details/json?place_id=" + id + "&fields=name,rating,formatted_phone_number,icon,photo,formatted_address,opening_hours,website,price_level,rating,review,user_ratings_total&key=" + process.env.GOOGLE_API_KEY);
 
 
-    req.end(function (res) {
-        if (res.error) throw new Error(res.error);
-        console.log(util.inspect(res.body, {showHidden: false, depth: null}))
-        response.send(res.body);
+//     req.end(function (res) {
+//         if (res.error) throw new Error(res.error);
+//         console.log(util.inspect(res.body, {showHidden: false, depth: null}))
+//         response.send(res.body);
 
-    });
+//     });
     
-    //findOrInsertRestaurantsInDatabase("ChIJ_3lMQdAodTERNMFuONVSmWw", testRestaurant);
-    //response.send(testRestaurant);   
-}
+//     //findOrInsertRestaurantsInDatabase("ChIJ_3lMQdAodTERNMFuONVSmWw", testRestaurant);
+//     //response.send(testRestaurant);   
+// }
 
 // function findOrInsertRestaurantsInDatabase(id, restaurant){
 //     try{
@@ -426,709 +413,709 @@ function getSpecificRestaurant(id, lat, lng, response){
 //     }
 // }
 
-function getRestaurantID(textInput, lat, lng, response){
-    const req = unirest("GET", `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${textInput}&inputtype=textquery&fields=place_id,name,geometry&locationbias=circle:1000@${lat},${lng}&key=AIzaSyAEX7J8GBc__Ope0D6V1Ot8N7z-x1R0IPo`);
+// function getRestaurantID(textInput, lat, lng, response){
+//     const req = unirest("GET", `https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=${textInput}&inputtype=textquery&fields=place_id,name,geometry&locationbias=circle:1000@${lat},${lng}&key=AIzaSyAEX7J8GBc__Ope0D6V1Ot8N7z-x1R0IPo`);
 
-    req.end(function (res) {
-        if (res.error) throw new Error(res.error);
-        console.log(util.inspect(res.body, {showHidden: false, depth: null}))
-        response.send(res.body.candidates[0]);
-    });
-}
+//     req.end(function (res) {
+//         if (res.error) throw new Error(res.error);
+//         console.log(util.inspect(res.body, {showHidden: false, depth: null}))
+//         response.send(res.body.candidates[0]);
+//     });
+// }
 
-function getImageForCity(city, response){
-    const url = `https://pixabay.com/api/?key=${process.env.PIXABAY_API_KEY}&q=${city}&image_type=photo&orientation=horizontal&min_width=1000`
-    const req = unirest("GET", "https://pixabay.com/api/");
-    req.query({
-        "key": process.env.PIXABAY_API_KEY,
-        "q": city,
-        "image_type": "photo",
-        "orientation": "horizontal",
-        "min_width": 1000
-    });
+// function getImageForCity(city, response){
+//     const url = `https://pixabay.com/api/?key=${process.env.PIXABAY_API_KEY}&q=${city}&image_type=photo&orientation=horizontal&min_width=1000`
+//     const req = unirest("GET", "https://pixabay.com/api/");
+//     req.query({
+//         "key": process.env.PIXABAY_API_KEY,
+//         "q": city,
+//         "image_type": "photo",
+//         "orientation": "horizontal",
+//         "min_width": 1000
+//     });
 
-    req.end(function (res) {
-        if (res.error) throw new Error(res.error);
-        response.send(res.body)
-    });
-}
+//     req.end(function (res) {
+//         if (res.error) throw new Error(res.error);
+//         response.send(res.body)
+//     });
+// }
 
-function addLocation(id, lat, lng, city, state, country){
-    try{
-        console.log("Connect to database successfully!")
-        pool.query("INSERT INTO user_locations VALUES ($1, $2, $3, $4, $5, $6)", [id, lat, lng, city, state, country]);
-        return true;
-    } catch (e){
-        console.log(e);
-        return false;
-    } finally {
-        console.log("Client disconnected successfully");
-    }
-}
+// function addLocation(id, lat, lng, city, state, country){
+//     try{
+//         console.log("Connect to database successfully!")
+//         pool.query("INSERT INTO user_locations VALUES ($1, $2, $3, $4, $5, $6)", [id, lat, lng, city, state, country]);
+//         return true;
+//     } catch (e){
+//         console.log(e);
+//         return false;
+//     } finally {
+//         console.log("Client disconnected successfully");
+//     }
+// }
 
-async function addBlogs(restaurant_id, user_id, author_name, name, address, content, city, country, files, next, callBack){
-    try{
-        console.log("-----------------------------");
-        console.log("Adding Blogs to database...");
-        const id = await uuid();
-        await pool.query("INSERT INTO user_blogs VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [id, restaurant_id, user_id, author_name, name, address, content, new Date()]);
-        await pool.query("INSERT INTO user_blog_location VALUES($1, $2, $3)", [id, city, country]);
-        uploadImages(id, files, next, callBack);
-    } catch (e){
-        console.log(e);
-        callBack(false)
-        pool.query("ROLLBACK");
-    } finally {
-        console.log("Finish Adding blogs to database");
-        console.log("-----------------------------");
-    }
-}
+// async function addBlogs(restaurant_id, user_id, author_name, name, address, content, city, country, files, next, callBack){
+//     try{
+//         console.log("-----------------------------");
+//         console.log("Adding Blogs to database...");
+//         const id = await uuid();
+//         await pool.query("INSERT INTO user_blogs VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", [id, restaurant_id, user_id, author_name, name, address, content, new Date()]);
+//         await pool.query("INSERT INTO user_blog_location VALUES($1, $2, $3)", [id, city, country]);
+//         uploadImages(id, files, next, callBack);
+//     } catch (e){
+//         console.log(e);
+//         callBack(false)
+//         pool.query("ROLLBACK");
+//     } finally {
+//         console.log("Finish Adding blogs to database");
+//         console.log("-----------------------------");
+//     }
+// }
 
-async function getBlogPosts(city, country, userID,callBack){
-    try{
-        console.log("-----------------------------");
-        console.log("Fetching blogs from database...");
-        const table = await pool.query
-        (
-            "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
-            "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
-            "FROM user_blogs, users " +
-            "WHERE user_blogs.user_id = users.id " +
-            "UNION ALL " +
-            "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
-            "FROM user_blogs, oauth_users " +
-            "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
+// async function getBlogPosts(city, country, userID,callBack){
+//     try{
+//         console.log("-----------------------------");
+//         console.log("Fetching blogs from database...");
+//         const table = await pool.query
+//         (
+//             "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
+//             "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+//             "FROM user_blogs, users " +
+//             "WHERE user_blogs.user_id = users.id " +
+//             "UNION ALL " +
+//             "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+//             "FROM user_blogs, oauth_users " +
+//             "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
 
-            "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
+//             "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
 
-            "LEFT JOIN ( " +
-            "SELECT heart_count.blog_id, hearts, " +
-            "    CASE is_hearted WHEN 1 " +
-            "    THEN 1 " +
-            "    ELSE 0 " +
-            "    END as is_hearted " +
-            "FROM( " +
-            "    SELECT blog_id, COUNT(blog_id) as hearts " +
-            "    FROM user_blog_hearts " +
-            "   GROUP BY blog_id " +
-            ") as heart_count " +
-            "left JOIN ( " +
-            "    SELECT blog_id, COUNT(blog_id) as is_hearted FROM( " +
-            "        SELECT blog_id " +
-            "        FROM user_blog_hearts " +
-            "        WHERE user_id = $1 " +
-            "        ) as a " +
-            "    GROUP BY blog_id " +
-            ") as is_hearted " +
-            "ON is_hearted.blog_id = heart_count.blog_id " +
-            ") as hearts ON hearts.blog_id = id " +
+//             "LEFT JOIN ( " +
+//             "SELECT heart_count.blog_id, hearts, " +
+//             "    CASE is_hearted WHEN 1 " +
+//             "    THEN 1 " +
+//             "    ELSE 0 " +
+//             "    END as is_hearted " +
+//             "FROM( " +
+//             "    SELECT blog_id, COUNT(blog_id) as hearts " +
+//             "    FROM user_blog_hearts " +
+//             "   GROUP BY blog_id " +
+//             ") as heart_count " +
+//             "left JOIN ( " +
+//             "    SELECT blog_id, COUNT(blog_id) as is_hearted FROM( " +
+//             "        SELECT blog_id " +
+//             "        FROM user_blog_hearts " +
+//             "        WHERE user_id = $1 " +
+//             "        ) as a " +
+//             "    GROUP BY blog_id " +
+//             ") as is_hearted " +
+//             "ON is_hearted.blog_id = heart_count.blog_id " +
+//             ") as hearts ON hearts.blog_id = id " +
 
-            "LEFT JOIN ( " +
-            "SELECT blog_id, COUNT(*) as comments " +
-            "FROM user_blog_comments " +
-            "GROUP BY blog_id " +
-            ") as comments ON comments.blog_id = id  " +
+//             "LEFT JOIN ( " +
+//             "SELECT blog_id, COUNT(*) as comments " +
+//             "FROM user_blog_comments " +
+//             "GROUP BY blog_id " +
+//             ") as comments ON comments.blog_id = id  " +
 
-            "LEFT JOIN ( " +
-            "    SELECT blog_id, array_agg(image_url) AS images " +
-            "    FROM user_blog_images " +
-            "    GROUP BY blog_id " +
-            "    ) as images ON images.blog_id = id " +
+//             "LEFT JOIN ( " +
+//             "    SELECT blog_id, array_agg(image_url) AS images " +
+//             "    FROM user_blog_images " +
+//             "    GROUP BY blog_id " +
+//             "    ) as images ON images.blog_id = id " +
 
-            "WHERE city = $2 AND country = $3 " +
-            "ORDER BY date_posted DESC "
+//             "WHERE city = $2 AND country = $3 " +
+//             "ORDER BY date_posted DESC "
 
-        , [userID, city, country]);
-        callBack(table.rows);
-    } catch (e) {
-        console.log(e);
-    } finally {
-        console.log("Finish fetching blogs from database");
-        console.log("-----------------------------------");
-    }
-}
-
-
-async function getUserBlogs(userID, callback){
-    console.log("-----------------------------");
-        console.log("Fetching blogs from database...");
-        const userBlogs = await pool.query
-        (
-            "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
-            "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
-            "FROM user_blogs, users " +
-            "WHERE user_blogs.user_id = users.id " +
-            "UNION ALL " +
-            "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
-            "FROM user_blogs, oauth_users " +
-            "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
-
-            "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
-
-            "LEFT JOIN ( " +
-            "SELECT heart_count.blog_id, hearts, " +
-            "    CASE is_hearted WHEN 1 " +
-            "    THEN 1 " +
-            "    ELSE 0 " +
-            "    END as is_hearted " +
-            "FROM( " +
-            "    SELECT blog_id, COUNT(blog_id) as hearts " +
-            "    FROM user_blog_hearts " +
-            "   GROUP BY blog_id " +
-            ") as heart_count " +
-            "left JOIN ( " +
-            "    SELECT blog_id, COUNT(blog_id) as is_hearted FROM( " +
-            "        SELECT blog_id " +
-            "        FROM user_blog_hearts " +
-            "        WHERE user_id = $1 " +
-            "        ) as a " +
-            "    GROUP BY blog_id " +
-            ") as is_hearted " +
-            "ON is_hearted.blog_id = heart_count.blog_id " +
-            ") as hearts ON hearts.blog_id = id " +
-
-            "LEFT JOIN ( " +
-            "SELECT blog_id, COUNT(*) as comments " +
-            "FROM user_blog_comments " +
-            "GROUP BY blog_id " +
-            ") as comments ON comments.blog_id = id  " +
-
-            "LEFT JOIN ( " +
-            "    SELECT blog_id, array_agg(image_url) AS images " +
-            "    FROM user_blog_images " +
-            "    GROUP BY blog_id " +
-            "    ) as images ON images.blog_id = id " +
-
-            "WHERE user_id = $1 " +
-            "ORDER BY date_posted DESC "
-
-        , [userID]);
-
-        const likedBlogs = await pool.query
-        (
-            "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
-            "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
-            "FROM user_blogs, users " +
-            "WHERE user_blogs.user_id = users.id " +
-            "UNION ALL " +
-            "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
-            "FROM user_blogs, oauth_users " +
-            "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
-
-            "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
-
-            "LEFT JOIN ( " +
-            "SELECT heart_count.blog_id, hearts, " +
-            "    CASE is_hearted WHEN 1 " +
-            "    THEN 1 " +
-            "    ELSE 0 " +
-            "    END as is_hearted " +
-            "FROM( " +
-            "    SELECT blog_id, COUNT(blog_id) as hearts " +
-            "    FROM user_blog_hearts " +
-            "   GROUP BY blog_id " +
-            ") as heart_count " +
-            "left JOIN ( " +
-            "    SELECT blog_id, COUNT(blog_id) as is_hearted FROM( " +
-            "        SELECT blog_id " +
-            "        FROM user_blog_hearts " +
-            "        WHERE user_id = $1 " +
-            "        ) as a " +
-            "    GROUP BY blog_id " +
-            ") as is_hearted " +
-            "ON is_hearted.blog_id = heart_count.blog_id " +
-            ") as hearts ON hearts.blog_id = id " +
-
-            "LEFT JOIN ( " +
-            "SELECT blog_id, COUNT(*) as comments " +
-            "FROM user_blog_comments " +
-            "GROUP BY blog_id " +
-            ") as comments ON comments.blog_id = id  " +
-
-            "LEFT JOIN ( " +
-            "    SELECT blog_id, array_agg(image_url) AS images " +
-            "    FROM user_blog_images " +
-            "    GROUP BY blog_id " +
-            "    ) as images ON images.blog_id = id " +
-
-            "WHERE is_hearted = 1 " +
-            "ORDER BY date_posted DESC "
-
-        , [userID]);
-        callback({
-            userBlogs: userBlogs.rows,
-            likedBlogs: likedBlogs.rows
-        });
-}
+//         , [userID, city, country]);
+//         callBack(table.rows);
+//     } catch (e) {
+//         console.log(e);
+//     } finally {
+//         console.log("Finish fetching blogs from database");
+//         console.log("-----------------------------------");
+//     }
+// }
 
 
+// async function getUserBlogs(userID, callback){
+//     console.log("-----------------------------");
+//         console.log("Fetching blogs from database...");
+//         const userBlogs = await pool.query
+//         (
+//             "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
+//             "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+//             "FROM user_blogs, users " +
+//             "WHERE user_blogs.user_id = users.id " +
+//             "UNION ALL " +
+//             "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+//             "FROM user_blogs, oauth_users " +
+//             "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
+
+//             "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
+
+//             "LEFT JOIN ( " +
+//             "SELECT heart_count.blog_id, hearts, " +
+//             "    CASE is_hearted WHEN 1 " +
+//             "    THEN 1 " +
+//             "    ELSE 0 " +
+//             "    END as is_hearted " +
+//             "FROM( " +
+//             "    SELECT blog_id, COUNT(blog_id) as hearts " +
+//             "    FROM user_blog_hearts " +
+//             "   GROUP BY blog_id " +
+//             ") as heart_count " +
+//             "left JOIN ( " +
+//             "    SELECT blog_id, COUNT(blog_id) as is_hearted FROM( " +
+//             "        SELECT blog_id " +
+//             "        FROM user_blog_hearts " +
+//             "        WHERE user_id = $1 " +
+//             "        ) as a " +
+//             "    GROUP BY blog_id " +
+//             ") as is_hearted " +
+//             "ON is_hearted.blog_id = heart_count.blog_id " +
+//             ") as hearts ON hearts.blog_id = id " +
+
+//             "LEFT JOIN ( " +
+//             "SELECT blog_id, COUNT(*) as comments " +
+//             "FROM user_blog_comments " +
+//             "GROUP BY blog_id " +
+//             ") as comments ON comments.blog_id = id  " +
+
+//             "LEFT JOIN ( " +
+//             "    SELECT blog_id, array_agg(image_url) AS images " +
+//             "    FROM user_blog_images " +
+//             "    GROUP BY blog_id " +
+//             "    ) as images ON images.blog_id = id " +
+
+//             "WHERE user_id = $1 " +
+//             "ORDER BY date_posted DESC "
+
+//         , [userID]);
+
+//         const likedBlogs = await pool.query
+//         (
+//             "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
+//             "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+//             "FROM user_blogs, users " +
+//             "WHERE user_blogs.user_id = users.id " +
+//             "UNION ALL " +
+//             "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+//             "FROM user_blogs, oauth_users " +
+//             "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
+
+//             "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
+
+//             "LEFT JOIN ( " +
+//             "SELECT heart_count.blog_id, hearts, " +
+//             "    CASE is_hearted WHEN 1 " +
+//             "    THEN 1 " +
+//             "    ELSE 0 " +
+//             "    END as is_hearted " +
+//             "FROM( " +
+//             "    SELECT blog_id, COUNT(blog_id) as hearts " +
+//             "    FROM user_blog_hearts " +
+//             "   GROUP BY blog_id " +
+//             ") as heart_count " +
+//             "left JOIN ( " +
+//             "    SELECT blog_id, COUNT(blog_id) as is_hearted FROM( " +
+//             "        SELECT blog_id " +
+//             "        FROM user_blog_hearts " +
+//             "        WHERE user_id = $1 " +
+//             "        ) as a " +
+//             "    GROUP BY blog_id " +
+//             ") as is_hearted " +
+//             "ON is_hearted.blog_id = heart_count.blog_id " +
+//             ") as hearts ON hearts.blog_id = id " +
+
+//             "LEFT JOIN ( " +
+//             "SELECT blog_id, COUNT(*) as comments " +
+//             "FROM user_blog_comments " +
+//             "GROUP BY blog_id " +
+//             ") as comments ON comments.blog_id = id  " +
+
+//             "LEFT JOIN ( " +
+//             "    SELECT blog_id, array_agg(image_url) AS images " +
+//             "    FROM user_blog_images " +
+//             "    GROUP BY blog_id " +
+//             "    ) as images ON images.blog_id = id " +
+
+//             "WHERE is_hearted = 1 " +
+//             "ORDER BY date_posted DESC "
+
+//         , [userID]);
+//         callback({
+//             userBlogs: userBlogs.rows,
+//             likedBlogs: likedBlogs.rows
+//         });
+// }
 
 
 
-async function searchBlogPosts(textInput, city, country, userID,callBack){
-    try{
-        console.log("-----------------------------");
-        console.log("searching blogs from database...");
-        const table = await pool.query
-        (
-            "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
-            "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
-            "FROM user_blogs, users " +
-            "WHERE user_blogs.user_id = users.id " +
-            "UNION ALL " +
-            "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
-            "FROM user_blogs, oauth_users " +
-            "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
-
-            "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
-
-            "LEFT JOIN ( " +
-            "SELECT heart_count.blog_id, hearts, " +
-            "    CASE is_hearted WHEN 1 " +
-            "    THEN 1 " +
-            "    ELSE 0 " +
-            "    END as is_hearted " +
-            "FROM( " +
-            "    SELECT blog_id, COUNT(blog_id) as hearts " +
-            "    FROM user_blog_hearts " +
-            "   GROUP BY blog_id " +
-            ") as heart_count " +
-            "left JOIN ( " +
-            "    SELECT blog_id, COUNT(blog_id) as is_hearted FROM( " +
-            "        SELECT blog_id " +
-            "        FROM user_blog_hearts " +
-            "        WHERE user_id = $1 " +
-            "        ) as a " +
-            "    GROUP BY blog_id " +
-            ") as is_hearted " +
-            "ON is_hearted.blog_id = heart_count.blog_id " +
-            ") as hearts ON hearts.blog_id = id " +
-
-            "LEFT JOIN ( " +
-            "SELECT blog_id, COUNT(*) as comments " +
-            "FROM user_blog_comments " +
-            "GROUP BY blog_id " +
-            ") as comments ON comments.blog_id = id  " +
-
-            "LEFT JOIN ( " +
-            "    SELECT blog_id, array_agg(image_url) AS images " +
-            "    FROM user_blog_images " +
-            "    GROUP BY blog_id " +
-            "    ) as images ON images.blog_id = id " +
-
-            "WHERE city = $2 AND country = $3 AND " +
-            "(content LIKE $4 OR restaurant_name LIKE $4 OR restaurant_address LIKE $4 OR author_name LIKE $4)" +
-            "ORDER BY date_posted DESC "
-
-        , [userID, city, country, `%${textInput}%`]);
-        callBack(table.rows);
-    } catch (e) {
-        console.log(e);
-    } finally {
-        console.log("Finish searching blogs from database");
-        console.log("-----------------------------------");
-    }
-}
 
 
-async function editBlogPost(blogID, restaurantID, restaurantName, restaurantAddress, blogContent, city, country, files, next, callback){
-    try {
-        console.log("-----------------------------")
-        console.log("Editing blog post From database...");
-        const editBlogResult = await pool.query
-        (
-            "UPDATE user_blogs SET " +
-            "restaurant_id = $1, " +
-            "restaurant_name = $2, " +
-            "restaurant_address = $3, " + 
-            "content = $4 " +
-            "WHERE id = $5 "
-        , [restaurantID, restaurantName, restaurantAddress, blogContent, blogID]);
-        const editBlogLocationResult = await pool.query
-        (
-            "UPDATE user_blog_location SET " +
-            "city = $1, " +
-            "country = $2 " + 
-            "WHERE blog_id = $3 "
-        , [city, country, blogID]);
+// async function searchBlogPosts(textInput, city, country, userID,callBack){
+//     try{
+//         console.log("-----------------------------");
+//         console.log("searching blogs from database...");
+//         const table = await pool.query
+//         (
+//             "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
+//             "(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+//             "FROM user_blogs, users " +
+//             "WHERE user_blogs.user_id = users.id " +
+//             "UNION ALL " +
+//             "SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+//             "FROM user_blogs, oauth_users " +
+//             "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
+
+//             "INNER JOIN user_blog_location ON user_blog_location.blog_id = id " +
+
+//             "LEFT JOIN ( " +
+//             "SELECT heart_count.blog_id, hearts, " +
+//             "    CASE is_hearted WHEN 1 " +
+//             "    THEN 1 " +
+//             "    ELSE 0 " +
+//             "    END as is_hearted " +
+//             "FROM( " +
+//             "    SELECT blog_id, COUNT(blog_id) as hearts " +
+//             "    FROM user_blog_hearts " +
+//             "   GROUP BY blog_id " +
+//             ") as heart_count " +
+//             "left JOIN ( " +
+//             "    SELECT blog_id, COUNT(blog_id) as is_hearted FROM( " +
+//             "        SELECT blog_id " +
+//             "        FROM user_blog_hearts " +
+//             "        WHERE user_id = $1 " +
+//             "        ) as a " +
+//             "    GROUP BY blog_id " +
+//             ") as is_hearted " +
+//             "ON is_hearted.blog_id = heart_count.blog_id " +
+//             ") as hearts ON hearts.blog_id = id " +
+
+//             "LEFT JOIN ( " +
+//             "SELECT blog_id, COUNT(*) as comments " +
+//             "FROM user_blog_comments " +
+//             "GROUP BY blog_id " +
+//             ") as comments ON comments.blog_id = id  " +
+
+//             "LEFT JOIN ( " +
+//             "    SELECT blog_id, array_agg(image_url) AS images " +
+//             "    FROM user_blog_images " +
+//             "    GROUP BY blog_id " +
+//             "    ) as images ON images.blog_id = id " +
+
+//             "WHERE city = $2 AND country = $3 AND " +
+//             "(content LIKE $4 OR restaurant_name LIKE $4 OR restaurant_address LIKE $4 OR author_name LIKE $4)" +
+//             "ORDER BY date_posted DESC "
+
+//         , [userID, city, country, `%${textInput}%`]);
+//         callBack(table.rows);
+//     } catch (e) {
+//         console.log(e);
+//     } finally {
+//         console.log("Finish searching blogs from database");
+//         console.log("-----------------------------------");
+//     }
+// }
+
+
+// async function editBlogPost(blogID, restaurantID, restaurantName, restaurantAddress, blogContent, city, country, files, next, callback){
+//     try {
+//         console.log("-----------------------------")
+//         console.log("Editing blog post From database...");
+//         const editBlogResult = await pool.query
+//         (
+//             "UPDATE user_blogs SET " +
+//             "restaurant_id = $1, " +
+//             "restaurant_name = $2, " +
+//             "restaurant_address = $3, " + 
+//             "content = $4 " +
+//             "WHERE id = $5 "
+//         , [restaurantID, restaurantName, restaurantAddress, blogContent, blogID]);
+//         const editBlogLocationResult = await pool.query
+//         (
+//             "UPDATE user_blog_location SET " +
+//             "city = $1, " +
+//             "country = $2 " + 
+//             "WHERE blog_id = $3 "
+//         , [city, country, blogID]);
         
-        uploadImages(blogID, files, next, (result) => {
-            if(result && editBlogResult.rowCount == 1 && editBlogLocationResult.rowCount == 1){
-                console.log("Successfully edit blog post!")
-                callback(true);
-            } else {
-                throw "Something went wrong when editting blog post!";
-            }
-        })
+//         uploadImages(blogID, files, next, (result) => {
+//             if(result && editBlogResult.rowCount == 1 && editBlogLocationResult.rowCount == 1){
+//                 console.log("Successfully edit blog post!")
+//                 callback(true);
+//             } else {
+//                 throw "Something went wrong when editting blog post!";
+//             }
+//         })
         
         
         
 
-    } catch(error){
-        console.log("Fail! to edit post");
-        console.log(error);
-        callback(false);
-        pool.query("ROLLBACK");
-    } finally {
-        console.log("Finishing Editing blog post From database...");
-        console.log("-----------------------------");
-    }
-}
+//     } catch(error){
+//         console.log("Fail! to edit post");
+//         console.log(error);
+//         callback(false);
+//         pool.query("ROLLBACK");
+//     } finally {
+//         console.log("Finishing Editing blog post From database...");
+//         console.log("-----------------------------");
+//     }
+// }
 
-async function deleteBlogPost(blogID, callback){
-    try{
-        console.log("-----------------------------")
-        console.log("Deleting Blog post From database...");
-        const result = await pool.query(`DELETE FROM user_blogs WHERE id = '${blogID}' `);
-        if(result.rowCount == 1){
-            console.log("Successfull!");
-            callback(true);
-        } else {
-            console.log("Fail to delete");
-            callback(false);
-        }
+// async function deleteBlogPost(blogID, callback){
+//     try{
+//         console.log("-----------------------------")
+//         console.log("Deleting Blog post From database...");
+//         const result = await pool.query(`DELETE FROM user_blogs WHERE id = '${blogID}' `);
+//         if(result.rowCount == 1){
+//             console.log("Successfull!");
+//             callback(true);
+//         } else {
+//             console.log("Fail to delete");
+//             callback(false);
+//         }
         
-    } catch (e){
-        console.log(e);
-        client.query("ROLLBACK");
-    } finally {
-        console.log("Finish Deleting blog post from database");
-        console.log("-----------------------------");
-    }
-}
+//     } catch (e){
+//         console.log(e);
+//         client.query("ROLLBACK");
+//     } finally {
+//         console.log("Finish Deleting blog post from database");
+//         console.log("-----------------------------");
+//     }
+// }
 
 
 
-async function addHeart(blogID, userID, callback){
-    try{
-        console.log("-----------------------------")
-        console.log("Adding Love to database...");
-        const id = blogID + userID;
-        const result = await pool.query("INSERT INTO user_blog_hearts VALUES ($1, $2, $3)", [id, blogID, userID]);
-        if(result.rowCount == 1){
-            console.log("Successfull!");
-            callback(true);
-        } else {
-            console.log("Fail to add");
-            callback(false);
-        }
-    } catch (e){
-        console.log(e);
-        pool.query("ROLLBACK");
-    } finally {
-        console.log("Finish Adding Love to database");
-        console.log("-----------------------------");
-    }
-}
+// async function addHeart(blogID, userID, callback){
+//     try{
+//         console.log("-----------------------------")
+//         console.log("Adding Love to database...");
+//         const id = blogID + userID;
+//         const result = await pool.query("INSERT INTO user_blog_hearts VALUES ($1, $2, $3)", [id, blogID, userID]);
+//         if(result.rowCount == 1){
+//             console.log("Successfull!");
+//             callback(true);
+//         } else {
+//             console.log("Fail to add");
+//             callback(false);
+//         }
+//     } catch (e){
+//         console.log(e);
+//         pool.query("ROLLBACK");
+//     } finally {
+//         console.log("Finish Adding Love to database");
+//         console.log("-----------------------------");
+//     }
+// }
 
-async function deleteHeart(blogID, userID, callback){
-    try{
-        console.log("-----------------------------")
-        console.log("Deleting Love From database...");
-        const id = blogID.concat(userID);
-        const result = await pool.query(`DELETE FROM user_blog_hearts WHERE id = '${id}' `);
-        if(result.rowCount == 1){
-            console.log("Successfull!");
-            callback(true);
-        } else {
-            console.log("Fail to delete");
-            callback(false);
-        }
+// async function deleteHeart(blogID, userID, callback){
+//     try{
+//         console.log("-----------------------------")
+//         console.log("Deleting Love From database...");
+//         const id = blogID.concat(userID);
+//         const result = await pool.query(`DELETE FROM user_blog_hearts WHERE id = '${id}' `);
+//         if(result.rowCount == 1){
+//             console.log("Successfull!");
+//             callback(true);
+//         } else {
+//             console.log("Fail to delete");
+//             callback(false);
+//         }
         
-    } catch (e){
-        console.log(e);
-        pool.query("ROLLBACK");
-    } finally {
-        console.log("Finish Deleting Love from database");
-        console.log("-----------------------------");
-    }
-}
+//     } catch (e){
+//         console.log(e);
+//         pool.query("ROLLBACK");
+//     } finally {
+//         console.log("Finish Deleting Love from database");
+//         console.log("-----------------------------");
+//     }
+// }
 
-async function addComment(blogID, userID, authorName, content, callback){
-    try {
-        console.log("--------------------------");
-        console.log("Adding comment to database");
+// async function addComment(blogID, userID, authorName, content, callback){
+//     try {
+//         console.log("--------------------------");
+//         console.log("Adding comment to database");
         
-        const id = await uuid();
-        const result = await pool.query("INSERT INTO user_blog_comments VALUES($1, $2, $3, $4, $5, $6)", [id, blogID, userID, authorName, content, new Date()])
-        if(result.rowCount == 1){
-            console.log("Successful!");
-            callback(true);
-        } else {
-            console.log("Fail to add comment");
-            callback(false);
-        }
-    } catch(error) {
-        console.log("Fail to add comment!");
-        console.log(error);
-        callback(false);
-    } finally {
-        console.log("Finish adding comment to database");
-        console.log("----------------------------------")
-    }
-}
+//         const id = await uuid();
+//         const result = await pool.query("INSERT INTO user_blog_comments VALUES($1, $2, $3, $4, $5, $6)", [id, blogID, userID, authorName, content, new Date()])
+//         if(result.rowCount == 1){
+//             console.log("Successful!");
+//             callback(true);
+//         } else {
+//             console.log("Fail to add comment");
+//             callback(false);
+//         }
+//     } catch(error) {
+//         console.log("Fail to add comment!");
+//         console.log(error);
+//         callback(false);
+//     } finally {
+//         console.log("Finish adding comment to database");
+//         console.log("----------------------------------")
+//     }
+// }
 
-async function getComments(blogID, callback){
-    try {
-        console.log("--------------------------");
-        console.log("Getting comments from database", blogID);
+// async function getComments(blogID, callback){
+//     try {
+//         console.log("--------------------------");
+//         console.log("Getting comments from database", blogID);
 
-        const result = await pool.query
-        (
-            "SELECT *, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
-            "(SELECT user_blog_comments.id as comment_id, blog_id, user_id, author_name, comment_content, users.avatar, date_posted " +
-            "FROM user_blog_comments, users " +
-            "WHERE user_id = users.id " +
-            "UNION ALL " +
-            "SELECT user_blog_comments.id as comment_id, blog_id, user_id, author_name, comment_content, oauth_users.avatar, date_posted " +
-            "FROM user_blog_comments, oauth_users " +
-            "WHERE user_id = oauth_users.id) as comments " +
-            "WHERE blog_id = $1 " +
-            "ORDER BY date_posted DESC"
-        , [blogID]);
-        console.log(result.rows);
-        callback(result.rows);
+//         const result = await pool.query
+//         (
+//             "SELECT *, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
+//             "(SELECT user_blog_comments.id as comment_id, blog_id, user_id, author_name, comment_content, users.avatar, date_posted " +
+//             "FROM user_blog_comments, users " +
+//             "WHERE user_id = users.id " +
+//             "UNION ALL " +
+//             "SELECT user_blog_comments.id as comment_id, blog_id, user_id, author_name, comment_content, oauth_users.avatar, date_posted " +
+//             "FROM user_blog_comments, oauth_users " +
+//             "WHERE user_id = oauth_users.id) as comments " +
+//             "WHERE blog_id = $1 " +
+//             "ORDER BY date_posted DESC"
+//         , [blogID]);
+//         console.log(result.rows);
+//         callback(result.rows);
 
-    } catch(error) {
-        console.log("Fail to get comment!")
-        console.log(error);
-    } finally {
-        console.log("Finish Getting comments from database");
-        console.log("-------------------------------");
-    }
-}
+//     } catch(error) {
+//         console.log("Fail to get comment!")
+//         console.log(error);
+//     } finally {
+//         console.log("Finish Getting comments from database");
+//         console.log("-------------------------------");
+//     }
+// }
 
-async function deleteComment(commentID, callback){
-    try {
-        console.log("---------------------------");
-        console.log("Deleting comments from database");
+// async function deleteComment(commentID, callback){
+//     try {
+//         console.log("---------------------------");
+//         console.log("Deleting comments from database");
 
-        const result = await pool.query("DELETE FROM user_blog_comments WHERE id = $1", [commentID]);
-        if(result.rowCount == 1){
-            console.log("Successful!");
-            callback(true);
-        } else {
-            console.log("Fail to delete comment");
-            callback(false);
-        }
+//         const result = await pool.query("DELETE FROM user_blog_comments WHERE id = $1", [commentID]);
+//         if(result.rowCount == 1){
+//             console.log("Successful!");
+//             callback(true);
+//         } else {
+//             console.log("Fail to delete comment");
+//             callback(false);
+//         }
 
-    } catch (error) {  
-        console.log("Fail to delete comment!")
-        console.log(error);
-    } finally {
-        console.log("Finish deleting comments from database");
-        console.log("---------------------------");
-    }
-}
+//     } catch (error) {  
+//         console.log("Fail to delete comment!")
+//         console.log(error);
+//     } finally {
+//         console.log("Finish deleting comments from database");
+//         console.log("---------------------------");
+//     }
+// }
 
-function uploadImages(id, files, next, callback){
-    if (files.length == 0){
-        callback(true);
-        return;
-    }
-    var imageURLs = [];
-    const upload = new Promise((resolve, reject) => {
-        files.forEach((file, i) => {
-            // Create a new blob in the bucket and upload the file data.
-            const blob = bucket.file(file.originalname);
-            const blobStream = blob.createWriteStream({
-                resumable: false
-            });
+// function uploadImages(id, files, next, callback){
+//     if (files.length == 0){
+//         callback(true);
+//         return;
+//     }
+//     var imageURLs = [];
+//     const upload = new Promise((resolve, reject) => {
+//         files.forEach((file, i) => {
+//             // Create a new blob in the bucket and upload the file data.
+//             const blob = bucket.file(file.originalname);
+//             const blobStream = blob.createWriteStream({
+//                 resumable: false
+//             });
             
-            blobStream.on('error', (err) => {
-                next(err);
-            });
+//             blobStream.on('error', (err) => {
+//                 next(err);
+//             });
     
-            blobStream.on('finish', async () => {
-                // The public URL can be used to directly access the file via HTTP.
-                console.log(`https://storage.googleapis.com/${bucket.name}/${blob.name}`, i);
-                try{
-                    await uploadImageToDatabase(id, `https://storage.googleapis.com/${bucket.name}/${blob.name}`, (result) => {
-                    if(result) {
-                        imageURLs.push(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
-                        if (imageURLs.length === files.length) resolve();
-                    } else {
-                        reject();
-                    }
-                })
-                } catch(err){
-                    console.log(err);
-                    reject();
-                }
+//             blobStream.on('finish', async () => {
+//                 // The public URL can be used to directly access the file via HTTP.
+//                 console.log(`https://storage.googleapis.com/${bucket.name}/${blob.name}`, i);
+//                 try{
+//                     await uploadImageToDatabase(id, `https://storage.googleapis.com/${bucket.name}/${blob.name}`, (result) => {
+//                     if(result) {
+//                         imageURLs.push(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
+//                         if (imageURLs.length === files.length) resolve();
+//                     } else {
+//                         reject();
+//                     }
+//                 })
+//                 } catch(err){
+//                     console.log(err);
+//                     reject();
+//                 }
                 
                 
-            });
+//             });
         
-            blobStream.end(file.buffer);
-        })
-    });
+//             blobStream.end(file.buffer);
+//         })
+//     });
    
-    upload.then(() => {
-        console.log('All done!');
-        callback(true);
-    });
+//     upload.then(() => {
+//         console.log('All done!');
+//         callback(true);
+//     });
     
-}
+// }
 
-async function uploadImageToDatabase(id, url, callback){
-    try {
-        console.log("--------------------------");
-        console.log("Adding image url to database");
+// async function uploadImageToDatabase(id, url, callback){
+//     try {
+//         console.log("--------------------------");
+//         console.log("Adding image url to database");
  
-        const result = await pool.query("INSERT INTO user_blog_images (blog_id, image_url) VALUES($1, $2)", [id, url])
-        if(result.rowCount == 1){
-            console.log("Successful!");
-            callback(true);
-        } else {
-            console.log("Fail to add images");
-            callback(false);
-        }
-    } catch(error) {
-        console.log("Fail to add comment!");
-        console.log(error);
-        callback(false);
-    } finally {
-        console.log("Finish adding image to database");
-        console.log("----------------------------------")
-    }
-}
+//         const result = await pool.query("INSERT INTO user_blog_images (blog_id, image_url) VALUES($1, $2)", [id, url])
+//         if(result.rowCount == 1){
+//             console.log("Successful!");
+//             callback(true);
+//         } else {
+//             console.log("Fail to add images");
+//             callback(false);
+//         }
+//     } catch(error) {
+//         console.log("Fail to add comment!");
+//         console.log(error);
+//         callback(false);
+//     } finally {
+//         console.log("Finish adding image to database");
+//         console.log("----------------------------------")
+//     }
+// }
 
-function uploadAvatar(userID, file, isOauth, next, callback){
-    // Create a new blob in the bucket and upload the file data.
-    const blob = bucket.file(file.originalname);
-    const blobStream = blob.createWriteStream({
-        resumable: false
-    });
+// function uploadAvatar(userID, file, isOauth, next, callback){
+//     // Create a new blob in the bucket and upload the file data.
+//     const blob = bucket.file(file.originalname);
+//     const blobStream = blob.createWriteStream({
+//         resumable: false
+//     });
     
-    blobStream.on('error', (err) => {
-        next(err);
-    });
+//     blobStream.on('error', (err) => {
+//         next(err);
+//     });
 
-    blobStream.on('finish', async () => {
-        // The public URL can be used to directly access the file via HTTP.
-        console.log(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
-        try{
-            editUserAvatar(userID, `https://storage.googleapis.com/${bucket.name}/${blob.name}`, isOauth, callback)
-        } catch(err){
-            console.log(err);
-        }
-    });
+//     blobStream.on('finish', async () => {
+//         // The public URL can be used to directly access the file via HTTP.
+//         console.log(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);
+//         try{
+//             editUserAvatar(userID, `https://storage.googleapis.com/${bucket.name}/${blob.name}`, isOauth, callback)
+//         } catch(err){
+//             console.log(err);
+//         }
+//     });
 
-    blobStream.end(file.buffer);
-}
+//     blobStream.end(file.buffer);
+// }
 
-async function editUserName(userID, newName, isOauth, callback){
-    try {
-        console.log("--------------------------");
-        console.log("Editing user name!");
-        let result;
-        if(isOauth){
-            result = await pool.query
-            (
-                "UPDATE oauth_users SET " +
-                "name = $1 " + 
-                "WHERE id = $2 "
-            ,[newName, userID])
-        } else {
-            result = await pool.query
-            (
-                "UPDATE users SET " +
-                "name = $1 " + 
-                "WHERE id = $2 "
-            ,[newName, userID]);
-        }   
+// async function editUserName(userID, newName, isOauth, callback){
+//     try {
+//         console.log("--------------------------");
+//         console.log("Editing user name!");
+//         let result;
+//         if(isOauth){
+//             result = await pool.query
+//             (
+//                 "UPDATE oauth_users SET " +
+//                 "name = $1 " + 
+//                 "WHERE id = $2 "
+//             ,[newName, userID])
+//         } else {
+//             result = await pool.query
+//             (
+//                 "UPDATE users SET " +
+//                 "name = $1 " + 
+//                 "WHERE id = $2 "
+//             ,[newName, userID]);
+//         }   
 
-        if(result.rowCount == 1){
-            console.log("Successful!");
-            callback(true);
-        } else {
-            console.log("Fail!");
-            callback(false);
-        }
+//         if(result.rowCount == 1){
+//             console.log("Successful!");
+//             callback(true);
+//         } else {
+//             console.log("Fail!");
+//             callback(false);
+//         }
        
-    } catch(error) {
-        console.log("Fail to edit user name!");
-        console.log(error);
-        callback(false);
-    } finally {
-        console.log("Finish editing user name");
-        console.log("----------------------------------")
-    }
-}
+//     } catch(error) {
+//         console.log("Fail to edit user name!");
+//         console.log(error);
+//         callback(false);
+//     } finally {
+//         console.log("Finish editing user name");
+//         console.log("----------------------------------")
+//     }
+// }
 
-async function editUserEmailAndPassword(userID, newEmail, newPassword, callback){
-    try {
-        console.log("--------------------------");
-        console.log("Editing user email and password!");
+// async function editUserEmailAndPassword(userID, newEmail, newPassword, callback){
+//     try {
+//         console.log("--------------------------");
+//         console.log("Editing user email and password!");
         
-        const result = await pool.query
-        (
-            "UPDATE users SET " +
-            "email = $1, " +
-            "password = $2 " + 
-            "WHERE id = $3 "
-        ,[newEmail, newPassword, userID])
+//         const result = await pool.query
+//         (
+//             "UPDATE users SET " +
+//             "email = $1, " +
+//             "password = $2 " + 
+//             "WHERE id = $3 "
+//         ,[newEmail, newPassword, userID])
 
-        if(result.rowCount == 1){
-            console.log("Successful!");
-            callback(true);
-        } else {
-            console.log("Fail!");
-            callback(false);
-        }
+//         if(result.rowCount == 1){
+//             console.log("Successful!");
+//             callback(true);
+//         } else {
+//             console.log("Fail!");
+//             callback(false);
+//         }
        
-    } catch(error) {
-        console.log("Fail to edit user email and password!");
-        console.log(error);
-        callback(false);
-    } finally {
-        console.log("Finish editing user email and password");
-        console.log("----------------------------------")
-    }
-}
+//     } catch(error) {
+//         console.log("Fail to edit user email and password!");
+//         console.log(error);
+//         callback(false);
+//     } finally {
+//         console.log("Finish editing user email and password");
+//         console.log("----------------------------------")
+//     }
+// }
 
 
 
-async function editUserAvatar(userID, url, isOauth, callback){
-    try {
-        console.log("--------------------------");
-        console.log("Editing user avatar!");
-        console.log(url, userID);
+// async function editUserAvatar(userID, url, isOauth, callback){
+//     try {
+//         console.log("--------------------------");
+//         console.log("Editing user avatar!");
+//         console.log(url, userID);
         
-        let result;
-        if(isOauth === true){
-            result = await pool.query
-            (
-                "UPDATE oauth_users SET " +
-                "avatar = $1 " + 
-                "WHERE id = $2 "
-            ,[url, userID])
-        } else {
-            result = await pool.query
-            (
-                "UPDATE users SET " +
-                "avatar = $1 " + 
-                "WHERE id = $2 "
-            ,[url, userID])
-        }
+//         let result;
+//         if(isOauth === true){
+//             result = await pool.query
+//             (
+//                 "UPDATE oauth_users SET " +
+//                 "avatar = $1 " + 
+//                 "WHERE id = $2 "
+//             ,[url, userID])
+//         } else {
+//             result = await pool.query
+//             (
+//                 "UPDATE users SET " +
+//                 "avatar = $1 " + 
+//                 "WHERE id = $2 "
+//             ,[url, userID])
+//         }
         
-        if(result.rowCount == 1){
-            console.log("Successful!");
-            callback(true);
-        } else {
-            console.log("Fail to edit avatar!");
-            callback(false);
-        }
+//         if(result.rowCount == 1){
+//             console.log("Successful!");
+//             callback(true);
+//         } else {
+//             console.log("Fail to edit avatar!");
+//             callback(false);
+//         }
        
-    } catch(error) {
-        console.log("Fail to edit user avatar!");
-        console.log(error);
-        callback(false);
-    } finally {
-        console.log("Finish editing user avatar");
-        console.log("----------------------------------")
-    }
-}
+//     } catch(error) {
+//         console.log("Fail to edit user avatar!");
+//         console.log(error);
+//         callback(false);
+//     } finally {
+//         console.log("Finish editing user avatar");
+//         console.log("----------------------------------")
+//     }
+// }
 
 // async function sendEmail(email, code){
 //     // create reusable transporter object using the default SMTP transport
@@ -1309,45 +1296,45 @@ const apiResponse = (code, message, status, data) => {
 //     }
 // });
 
-app.get('/cityImage', function(req, res){
-    getImageForCity(req.query.city, res)
-})
+// app.get('/cityImage', function(req, res){
+//     getImageForCity(req.query.city, res)
+// })
 
-app.get('/blogPosts', (req, res) => {
-    let id = null;
-    if(req.isAuthenticated())
-        id = req.session.passport.user.id;
-    getBlogPosts(req.query.city, req.query.country, id,(blogs) => {
-        console.log(util.inspect(blogs, {showHidden: false, depth: null}))
-        res.send(blogs);
-    });
-});
+// app.get('/blogPosts', (req, res) => {
+//     let id = null;
+//     if(req.isAuthenticated())
+//         id = req.session.passport.user.id;
+//     getBlogPosts(req.query.city, req.query.country, id,(blogs) => {
+//         console.log(util.inspect(blogs, {showHidden: false, depth: null}))
+//         res.send(blogs);
+//     });
+// });
 
-app.get('/userBlogs', (req, res) => {
-    if(!req.isAuthenticated()) res.send(null)
-    let id = req.session.passport.user.id;
-    getUserBlogs(id, (userBlogs) => {
-        res.send(userBlogs);
-    });
-});
+// app.get('/userBlogs', (req, res) => {
+//     if(!req.isAuthenticated()) res.send(null)
+//     let id = req.session.passport.user.id;
+//     getUserBlogs(id, (userBlogs) => {
+//         res.send(userBlogs);
+//     });
+// });
 
-app.get('/blogPosts/search', (req, res) => {
-    let id = null;
-    if(req.isAuthenticated())
-        id = req.session.passport.user.id;
-    searchBlogPosts(req.query.textInput, req.query.city, req.query.country, id,(blogs) => {
-        console.log(util.inspect(blogs, {showHidden: false, depth: null}))
-        res.send(blogs);
-    });
-});
+// app.get('/blogPosts/search', (req, res) => {
+//     let id = null;
+//     if(req.isAuthenticated())
+//         id = req.session.passport.user.id;
+//     searchBlogPosts(req.query.textInput, req.query.city, req.query.country, id,(blogs) => {
+//         console.log(util.inspect(blogs, {showHidden: false, depth: null}))
+//         res.send(blogs);
+//     });
+// });
 
-app.get('/comments', (req, res) => {
-    if(req.isAuthenticated()){
-        getComments(req.query.blogID, (result) => {
-            res.send(result);
-        })
-    }
-})
+// app.get('/comments', (req, res) => {
+//     if(req.isAuthenticated()){
+//         getComments(req.query.blogID, (result) => {
+//             res.send(result);
+//         })
+//     }
+// })
 
 // app.get('/verify', (req, res) => {
 //     console.log("getting code...")
@@ -1401,53 +1388,53 @@ app.get('/comments', (req, res) => {
 //       })(req, res, next);
 //  });
 
-app.post('/savelocation', (req,res) => {
-    const id = req.session.passport.user;
-    const lat = req.body.lat;
-    const lng = req.body.lng;
-    const city = req.body.city;
-    const state = req.body.state;
-    const country = req.body.country;
-    res.send(addLocation(id, lat, lng, city, state, country));
-})
+// app.post('/savelocation', (req,res) => {
+//     const id = req.session.passport.user;
+//     const lat = req.body.lat;
+//     const lng = req.body.lng;
+//     const city = req.body.city;
+//     const state = req.body.state;
+//     const country = req.body.country;
+//     res.send(addLocation(id, lat, lng, city, state, country));
+// })
 
-app.post('/blogPosts', multer.array('imgCollection'), (req, res, next) => {
-    if(req.isAuthenticated()){
-        const restaurantID = req.query.restaurantID;
-        const userID = req.session.passport.user.id;
-        const authorName = req.session.passport.user.name;
-        const restaurantName = req.query.restaurantName;
-        const restaurantAdress = req.query.restaurantAddress;
-        const content = req.query.blogContent;
-        const city = req.query.city;
-        const country = req.query.country;
+// app.post('/blogPosts', multer.array('imgCollection'), (req, res, next) => {
+//     if(req.isAuthenticated()){
+//         const restaurantID = req.query.restaurantID;
+//         const userID = req.session.passport.user.id;
+//         const authorName = req.session.passport.user.name;
+//         const restaurantName = req.query.restaurantName;
+//         const restaurantAdress = req.query.restaurantAddress;
+//         const content = req.query.blogContent;
+//         const city = req.query.city;
+//         const country = req.query.country;
 
-        addBlogs(restaurantID, userID, authorName, restaurantName, restaurantAdress,content, city, country, req.files, next, (result) =>{
-            res.send(result);
-        });
-        // addBlogs(null, null, null, null, null, null, null, null, req.files, next, (result) =>{
-        //     res.send(result);
-        // });
-    } 
-})
+//         addBlogs(restaurantID, userID, authorName, restaurantName, restaurantAdress,content, city, country, req.files, next, (result) =>{
+//             res.send(result);
+//         });
+//         // addBlogs(null, null, null, null, null, null, null, null, req.files, next, (result) =>{
+//         //     res.send(result);
+//         // });
+//     } 
+// })
 
-app.post('/love', (req, res) => {
-    if(req.isAuthenticated()){
-        addHeart(req.body.blogID, req.body.userID, (result) => {
-            res.send(result);
-        });
-    }
-})
+// app.post('/love', (req, res) => {
+//     if(req.isAuthenticated()){
+//         addHeart(req.body.blogID, req.body.userID, (result) => {
+//             res.send(result);
+//         });
+//     }
+// })
 
 
-app.post('/comments', (req, res) => {
-    if(req.isAuthenticated()){
-        console.log(req.body.blogID);
-        addComment(req.body.blogID, req.body.userID, req.body.authorName, req.body.content, (result) => {
-            res.send(result);
-        })
-    }
-})
+// app.post('/comments', (req, res) => {
+//     if(req.isAuthenticated()){
+//         console.log(req.body.blogID);
+//         addComment(req.body.blogID, req.body.userID, req.body.authorName, req.body.content, (result) => {
+//             res.send(result);
+//         })
+//     }
+// })
 
 // app.post('/verify', (req, res) => {
 //     if(req.isAuthenticated()){
@@ -1461,82 +1448,82 @@ app.post('/comments', (req, res) => {
 
 //Update Routes
 
-app.patch('/blogPosts', multer.array('imgCollection'),(req, res, next) => {
-    console.log("editing", req.files);
-    if(req.isAuthenticated()){
-        const blogID = req.query.blogID;
-        const restaurantID = req.query.restaurantID
-        const restaurantName = req.query.restaurantName;
-        const restaurantAdress = req.query.restaurantAddress;
-        const content = req.query.blogContent;
-        const city = req.query.city;
-        const country = req.query.country;
-        editBlogPost(blogID, restaurantID ,restaurantName, restaurantAdress, content, city, country, req.files, next, (result) => res.send(result));
-    }
-})
+// app.patch('/blogPosts', multer.array('imgCollection'),(req, res, next) => {
+//     console.log("editing", req.files);
+//     if(req.isAuthenticated()){
+//         const blogID = req.query.blogID;
+//         const restaurantID = req.query.restaurantID
+//         const restaurantName = req.query.restaurantName;
+//         const restaurantAdress = req.query.restaurantAddress;
+//         const content = req.query.blogContent;
+//         const city = req.query.city;
+//         const country = req.query.country;
+//         editBlogPost(blogID, restaurantID ,restaurantName, restaurantAdress, content, city, country, req.files, next, (result) => res.send(result));
+//     }
+// })
 
-app.patch('/userSettings/userName', (req, res) => {
-    console.log(req.body.userName, req.body.isOauth);
-    if(req.isAuthenticated()){
-        editUserName(req.session.passport.user.id, req.body.userName, req.body.isOauth, (result) => {
-            console.log("here");
-            res.send(result);
-        });
-    }
-})
+// app.patch('/userSettings/userName', (req, res) => {
+//     console.log(req.body.userName, req.body.isOauth);
+//     if(req.isAuthenticated()){
+//         editUserName(req.session.passport.user.id, req.body.userName, req.body.isOauth, (result) => {
+//             console.log("here");
+//             res.send(result);
+//         });
+//     }
+// })
 
-app.patch('/userSettings/emailAndPassword', (req, res) => {
-    console.log(req.body.email, req.body.password);
-    if(req.isAuthenticated()){
-        bcrypt.hash(req.body.password, saltRounds, function(err,hash){
-            if(!err){
-                editUserEmailAndPassword(req.session.passport.user.id, req.body.email, hash, (result) => {
-                    res.send(result)
-                });
-            } else {
-                console.log(err);
-            }
-        })
-    }
-})
+// app.patch('/userSettings/emailAndPassword', (req, res) => {
+//     console.log(req.body.email, req.body.password);
+//     if(req.isAuthenticated()){
+//         bcrypt.hash(req.body.password, saltRounds, function(err,hash){
+//             if(!err){
+//                 editUserEmailAndPassword(req.session.passport.user.id, req.body.email, hash, (result) => {
+//                     res.send(result)
+//                 });
+//             } else {
+//                 console.log(err);
+//             }
+//         })
+//     }
+// })
 
-app.patch('/userSettings/avatar', multer.single('image') ,(req, res, next) => {
-    console.log("File: ", req.file);
-    if(req.isAuthenticated()){
-        uploadAvatar(req.session.passport.user.id, req.file, req.query.isOauth, next, (result) => {
-            res.send(result)
-        })
-    }
+// app.patch('/userSettings/avatar', multer.single('image') ,(req, res, next) => {
+//     console.log("File: ", req.file);
+//     if(req.isAuthenticated()){
+//         uploadAvatar(req.session.passport.user.id, req.file, req.query.isOauth, next, (result) => {
+//             res.send(result)
+//         })
+//     }
 
-})
+// })
 
 
 //Delete Routes
 
-app.delete('/blogPosts', (req, res) => {
-    if(req.isAuthenticated()){
-        deleteBlogPost(req.query.blogID, (result) => {
-            res.send(result);
-        });
-    }
-})
+// app.delete('/blogPosts', (req, res) => {
+//     if(req.isAuthenticated()){
+//         deleteBlogPost(req.query.blogID, (result) => {
+//             res.send(result);
+//         });
+//     }
+// })
 
-app.delete('/love', (req, res) => {
-    if(req.isAuthenticated()){
-        deleteHeart(req.query.blogID, req.query.userID, (result) => {
-            res.send(result);
-        });
-    }
-})
+// app.delete('/love', (req, res) => {
+//     if(req.isAuthenticated()){
+//         deleteHeart(req.query.blogID, req.query.userID, (result) => {
+//             res.send(result);
+//         });
+//     }
+// })
 
-app.delete('/comments', (req, res) => {
-    if(req.isAuthenticated()){
-        console.log(req.query)
-        deleteComment(req.query.commentID, (result) => {
-            res.send(result);
-        })
-    }
-})
+// app.delete('/comments', (req, res) => {
+//     if(req.isAuthenticated()){
+//         console.log(req.query)
+//         deleteComment(req.query.commentID, (result) => {
+//             res.send(result);
+//         })
+//     }
+// })
 
 
 app.listen(port, () => console.log(`Feast Club is running on port ${port}!`));

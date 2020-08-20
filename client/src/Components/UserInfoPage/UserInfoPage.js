@@ -17,6 +17,7 @@ import Footer from '../SharedComponents/Footer'
 
 import "../../styles/UserInfoPage.css";
 import "../../styles/Shared.css";
+import AlertDialog from '../SharedComponents/AlertDialog';
 
 const UserInfoPage = () => {
 
@@ -41,6 +42,8 @@ const UserInfoPage = () => {
         images: []
     })
 
+    const [loginDialog, setLoginDialog] = useState(false);
+
     
     const history = useHistory();
     const isLoggedIn = useSelector(state => state.isLoggedIn)
@@ -61,15 +64,20 @@ const UserInfoPage = () => {
     
     
     if(!isLoggedIn){
-        history.push("/signin"); 
+        setLoginDialog(true)
     }
 
     const getVerificationEmail = () => {
         console.log("Click")
-        axios.get("http://localhost:5000/verify", {withCredentials: true})
+        axios.get("http://localhost:5000/auth/verify", {withCredentials: true})
             .then((response) => {
-                if(response.data === true){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     setOpenVerifyCodeDialog(true)
+                } else if(apiResponse.code == 401){
+                    history.push("/signin")
+                } else {
+                    alert(apiResponse.message)
                 }
             })
     }
@@ -80,13 +88,19 @@ const UserInfoPage = () => {
         console.log(code)
         if (code == "") return
         
-        axios.post("http://localhost:5000/verify", {code}, {withCredentials: true})
+        axios.post("http://localhost:5000/auth/verify", {code}, {withCredentials: true})
             .then((response) => {
                 setLoading(false)
-                if(response.data === true){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     setOpenVerifyCodeDialog(false);
                     setOpenEmailPasswordDialog(true);
-                } else alert("The code is either wrong or expired!");
+                } else if(apiResponse.code == 401){
+                    history.push("/signin")
+                    setLoginDialog(true)
+                } else {
+                    alert(apiResponse.message)
+                }
             })
     }
 
@@ -96,16 +110,22 @@ const UserInfoPage = () => {
         var formData = new FormData();
         formData.append('image', newAvatar)
         console.log("Change avatar!", formData, newAvatar)
-        axios.patch("http://localhost:5000/userSettings/avatar", formData, {
+        axios.patch("http://localhost:5000/user/edit/avatar", formData, {
             params: {
                 isOauth: currentUser.isOauth
             },
             withCredentials: true
         })  
             .then((response) => {
-                if(response.data === true){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     dispatch(currentUserSignIn({...currentUser, avatar: newAvatar}));
                     setLoading(false);
+                } else if(apiResponse.code == 401){
+                    history.push("/signin")
+                    setLoginDialog(true)
+                } else {
+                    alert(apiResponse.message)
                 }
             })
             .catch((err) => {
@@ -119,16 +139,20 @@ const UserInfoPage = () => {
         const newUserName = fields[0].value;
         if(newUserName === "") return;
         
-        axios.patch("http://localhost:5000/userSettings/userName", 
+        axios.patch("http://localhost:5000/user/edit/userName", 
         {userName: newUserName, isOauth: currentUser.isOauth}, 
         {withCredentials: true})  
             .then((response) => {
-                console.log("response: ", response);
-                if(response.data === true){
-                    setLoading(false);
-                    
+                setLoading(false);
+                const apiResponse = response.data
+                if(apiResponse.status){
                     setOpenUserNameDialog(false)
                     dispatch(currentUserSignIn({...currentUser, name: newUserName}));
+                } else if(apiResponse.code == 401){
+                    history.push("/signin")
+                    setLoginDialog(true)
+                } else {
+                    alert(apiResponse.message)
                 }
             })
             .catch((err) => {
@@ -145,13 +169,19 @@ const UserInfoPage = () => {
 
         if(newEmail === "" || newPassword === "") return;
 
-        axios.patch("http://localhost:5000/userSettings/emailAndPassword", 
+        axios.patch("http://localhost:5000/user/edit/emailAndPassword", 
         {email: newEmail, password: newPassword}, 
         {withCredentials: true})  
             .then((response) => {
-                if(response.data === true){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     setOpenEmailPasswordDialog(false);
                     logOut();
+                } else if(apiResponse.code == 401){
+                    history.push("/signin")
+                    setLoginDialog(true)
+                } else {
+                    alert(apiResponse.message)
                 }
             })
             .catch((err) => {
@@ -217,13 +247,20 @@ const UserInfoPage = () => {
     }
 
     const getUserBlogs = () => {
-        axios.get("http://localhost:5000/userblogs", 
+        axios.get("http://localhost:5000/blogs/user", 
         {withCredentials: true})  
             .then((response) => {
-                if(response.data){
-                    setBlogs(response.data);
-                    console.log(response.data);
+                const apiResponse = response.data
+                if(apiResponse.status){
+                    setBlogs(apiResponse.data);
+                    console.log(apiResponse.data);
+                } else if(apiResponse.code == 401) {
+                    // history.push("/signin")
+                    setLoginDialog(true)
+                } else {
+                    alert(apiResponse.message)
                 }
+        
             })
             .catch((err) => {
                 console.log(err);
@@ -237,6 +274,16 @@ const UserInfoPage = () => {
     return(
         <div className="page">
             <InfoNavbar/>
+            <AlertDialog
+                open={loginDialog}
+                alertTitle="Login first!"
+                alertMessage="We are moving you to login page!"
+                close={()=>{
+                        setLoginDialog(false)
+                        history.push("/signin")
+                    }
+                }
+            />
             <div className="user-info-page">
                 {
                     openUserNameDialog 

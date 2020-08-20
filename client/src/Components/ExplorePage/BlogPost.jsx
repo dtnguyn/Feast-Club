@@ -21,11 +21,14 @@ const BlogPost = (props) => {
             history.push("/signin"); 
             return
         }
-        axios.post("http://localhost:5000/love", info, {withCredentials: true})
+        axios.post("http://localhost:5000/blogs/love", info, {withCredentials: true})
             .then((response) => {
-                if(response.data) {
+                const apiResponse = response.data
+                if(apiResponse.status) {
                     setHeart(true);
                     setSocialCount({...socialCount, hearts: socialCount.hearts + 1});
+                } else if(apiResponse.code == 401){
+                    history.push("/signin")
                 }
             })
     }
@@ -39,7 +42,7 @@ const BlogPost = (props) => {
             history.push("/signin"); 
             return
         }
-        axios.delete("http://localhost:5000/love",
+        axios.delete("http://localhost:5000/blogs/love",
             {
                 withCredentials: true,
                 params: { 
@@ -49,10 +52,13 @@ const BlogPost = (props) => {
             }
         )
             .then((response) => {
-                if(response.data){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     setHeart(false);
                     setSocialCount({...socialCount, hearts: socialCount.hearts - 1})
-                };
+                } else if(apiResponse.code == 401){
+                    history.push("/signin")
+                }
             })
     }
 

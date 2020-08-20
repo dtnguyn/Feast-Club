@@ -36,17 +36,18 @@ router.use(cors({
 
 router.use(express.json());
 router.use(bodyParser.urlencoded({extended: true}));
+
 //passport config
 router.use(cookieParser(process.env.SESSION_SECRET))
 
-router.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false
-}));
+// router.use(session({
+//     secret: process.env.SESSION_SECRET,
+//     resave: true,
+//     saveUninitialized: true
+// }));
 
-router.use(passport.initialize());
-router.use(passport.session());
+// router.use(passport.initialize());
+// router.use(passport.session());
 
 
 passport.use(new LocalStrategy({
@@ -408,7 +409,7 @@ router
             insertOrUpdateVerifyCode(req.session.passport.user.id, req.session.passport.user.email, (apiResponse) => {
                 res.send(apiResponse)
             })
-        }
+        } else res.send(apiResponse(401, "You have not logged in yet.", false, null))
     })
     .post((req, res) => {
         console.log("Checking code...")
@@ -416,7 +417,7 @@ router
             verifyCode(req.session.passport.user.id, req.body.code, (apiResponse) => {
                 res.send(apiResponse);
             })
-        }
+        } else res.send(apiResponse(401, "You have not logged in yet.", false, null))
     })
 
 
@@ -482,4 +483,18 @@ router
         } else res.send(apiResponse(401, "You haven't logged in!", false, null));
     });
 
-module.exports = router;
+    router
+        .route("/test")
+        .post((req, res) => {
+            console.log("Debugging authentication: " + req.isAuthenticated())
+        })
+module.exports = {
+    auth: router,
+    ensureAuthenticated: (req, res, next) => {
+        if (req.isAuthenticated()) {
+            return next()
+        }
+        res.send(apiResponse(401, "You haven't logged in yet.", false, null))
+        
+    }
+}

@@ -22,7 +22,7 @@ function AlertDialog(props){
       </DialogContent>
       <DialogActions>
         <Button onClick={props.close} color="primary">
-        <span style={{color: '#da2d2d', fontWeight: 'bold'}}>Try again</span>
+        <span style={{color: '#da2d2d', fontWeight: 'bold'}}>Close</span>
         </Button>
       </DialogActions>
       </Dialog>

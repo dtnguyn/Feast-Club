@@ -26,11 +26,16 @@ const BlogDetailPage = (props) => {
             history.push("/signin");
             return
         }
-        axios.post("http://localhost:5000/love", info, {withCredentials: true})
+        axios.post("http://localhost:5000/blogs/love", info, {withCredentials: true})
             .then((response) => {
-                if(response.data) {
+                const apiResponse = response.data
+                if(apiResponse.status){
                     setHeart(true);
                     setSocialCount({...socialCount, hearts: socialCount.hearts + 1});
+                } else if(apiResponse.code == 401){
+                    history.push("/signin"); 
+                } else {
+                    alert(apiResponse.message);
                 }
             })
     }
@@ -41,7 +46,7 @@ const BlogDetailPage = (props) => {
             return
         }
 
-        axios.delete("http://localhost:5000/love",
+        axios.delete("http://localhost:5000/blogs/love",
             {
                 withCredentials: true,
                 params: { 
@@ -51,10 +56,15 @@ const BlogDetailPage = (props) => {
             }
         )
             .then((response) => {
-                if(response.data){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     setHeart(false);
                     setSocialCount({...socialCount, hearts: socialCount.hearts - 1 })
-                }; 
+                } else if(apiResponse.code == 401){
+                    history.push("/signin"); 
+                } else {
+                    alert(apiResponse.message);
+                }
             })
     }
 
@@ -64,18 +74,23 @@ const BlogDetailPage = (props) => {
             return
         }
         if(info.content === '') return;
-        axios.post("http://localhost:5000/comments", info, {withCredentials: true})
+        axios.post("http://localhost:5000/blogs/comments", info, {withCredentials: true})
             .then((response) => {
-                if(response.data){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     getComments();
                     setSocialCount({...socialCount, comments: (socialCount.comments + 1) })
+                } else if(apiResponse.code == 401){
+                    history.push("/signin"); 
+                } else {
+                    alert(apiResponse.message);
                 }
             })
     }
 
     const getComments = () => {
         console.log(blog);
-        axios.get("http://localhost:5000/comments", 
+        axios.get("http://localhost:5000/blogs/comments", 
         {
             withCredentials: true,
             params: {
@@ -83,8 +98,13 @@ const BlogDetailPage = (props) => {
             }
         })
             .then((response) => {
-                setComments(response.data);
-                setCommentContent("")
+                const apiResponse = response.data
+                if(apiResponse.status){
+                    setComments(apiResponse.data);
+                    setCommentContent("")
+                } else {
+                    alert(apiResponse.message)
+                }
             })
     }
 
@@ -93,7 +113,7 @@ const BlogDetailPage = (props) => {
             history.push("/signin"); 
             return
         }
-        axios.delete("http://localhost:5000/comments", 
+        axios.delete("http://localhost:5000/blogs/comments", 
         {
             withCredentials: true,
             params: { 
@@ -101,9 +121,14 @@ const BlogDetailPage = (props) => {
              } 
         })
             .then((response) => {
-                if(response.data){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     getComments();
                     setSocialCount({...socialCount, comments: socialCount.comments - 1 })
+                } else if(apiResponse.code == 401){
+                    history.push("/signin"); 
+                } else {
+                    alert(apiResponse.message);
                 }
             })
     }
