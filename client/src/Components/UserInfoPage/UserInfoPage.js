@@ -67,9 +67,14 @@ const UserInfoPage = () => {
         setLoginDialog(true)
     }
 
-    const getVerificationEmail = () => {
+    const getVerificationEmail = (email, id) => {
         console.log("Click")
-        axios.get("http://localhost:5000/auth/verify", {withCredentials: true})
+        axios.get("http://localhost:5000/auth/verify",{
+            params:{
+                email,
+                id
+            }
+        })
             .then((response) => {
                 const apiResponse = response.data
                 if(apiResponse.status){
@@ -88,7 +93,7 @@ const UserInfoPage = () => {
         console.log(code)
         if (code == "") return
         
-        axios.post("http://localhost:5000/auth/verify", {code}, {withCredentials: true})
+        axios.post("http://localhost:5000/auth/verify", {code, id: currentUser.id}, {withCredentials: true})
             .then((response) => {
                 setLoading(false)
                 const apiResponse = response.data
@@ -170,7 +175,7 @@ const UserInfoPage = () => {
         if(newEmail === "" || newPassword === "") return;
 
         axios.patch("http://localhost:5000/user/edit/emailAndPassword", 
-        {email: newEmail, password: newPassword}, 
+        {email: newEmail, password: newPassword, id: currentUser.id}, 
         {withCredentials: true})  
             .then((response) => {
                 const apiResponse = response.data
@@ -191,15 +196,17 @@ const UserInfoPage = () => {
         
     }
 
+
     const deleteBlog = (blogID) => {
-        axios.delete("http://localhost:5000/blogPosts", {
-            withCredentials: true,
-            params: { 
-                blogID
-            } 
-        })
+        axios.delete("http://localhost:5000/blogs", {
+                withCredentials: true,
+                params: { 
+                    blogID
+                } 
+            })
             .then(response => {
-                if(response.data){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     console.log("Successfully delete a blogpost!");
                     resetFocusBlog();
                     getUserBlogs();
@@ -216,7 +223,7 @@ const UserInfoPage = () => {
             formData.append('imgCollection', files[key])
         }  
 
-        axios.patch("http://localhost:5000/blogPosts", formData,{
+        axios.patch("http://localhost:5000/blogs/", formData,{
             withCredentials: true,
             params: {
                 blogID: focusBlog.blogID,
@@ -229,7 +236,8 @@ const UserInfoPage = () => {
             }
         })
             .then(response => {
-                if(response.data){
+                const apiResponse = response.data
+                if(apiResponse.status){
                     console.log("Successfully edit a blogpost!");
                     resetFocusBlog();
                     getUserBlogs();
@@ -355,7 +363,7 @@ const UserInfoPage = () => {
                 
                 {currentUser.isOauth 
                 ? null
-                : <ChangeEmailPasswordJumboTron onClick={() => {getVerificationEmail()}}/>}
+                : <ChangeEmailPasswordJumboTron onClick={() => {getVerificationEmail(currentUser.email, currentUser.id)}}/>}
                 
                 <div className="tab-view-container">
                     <TabView

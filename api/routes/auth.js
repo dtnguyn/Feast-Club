@@ -178,7 +178,7 @@ const findUserByEmail = async (email) => {
                 isOauth: false
             }
         } else { // if there is no match email
-            console.log("no founded user")
+            console.log("no founded user " + email)
             return null
         }  
     } catch (e){
@@ -342,6 +342,7 @@ async function insertOrUpdateVerifyCode(userId, email, callback){
 
 
 async function verifyCode(userId, code, callback){
+    console.log("verify: ", userId, code)
     try{
         console.log("--------------------------");
         console.log("Verifying code the user typed in...");
@@ -404,20 +405,30 @@ router
 router
     .route("/verify")
     .get((req, res) => {
-        console.log("Getting code...")
-        if(req.isAuthenticated()){
-            insertOrUpdateVerifyCode(req.session.passport.user.id, req.session.passport.user.email, (apiResponse) => {
-                res.send(apiResponse)
-            })
-        } else res.send(apiResponse(401, "You have not logged in yet.", false, null))
+        const id = req.query.id
+        const email = req.query.email
+        console.log("Getting code...", id, email)
+        insertOrUpdateVerifyCode(id, email, (apiResponse) => {
+            res.send(apiResponse)
+        })
     })
     .post((req, res) => {
         console.log("Checking code...")
-        if(req.isAuthenticated()){
-            verifyCode(req.session.passport.user.id, req.body.code, (apiResponse) => {
-                res.send(apiResponse);
-            })
-        } else res.send(apiResponse(401, "You have not logged in yet.", false, null))
+        const id = req.body.id
+        const code = req.body.code
+        verifyCode(id, code, (apiResponse) => {
+            res.send(apiResponse);
+        })
+    })
+
+router
+    .route("/verify/email")
+    .post(async (req, res) => {
+        console.log(req.body.email)
+        let user = await findUserByEmail(req.body.email)
+        console.log("user info: ", user)
+        if(user === null) res.send(apiResponse(200, "User not found!", false, null))
+        else res.send(apiResponse(200, "Found user.", true, {id: user.id, email: user.email}))
     })
 
 

@@ -177,10 +177,10 @@ router.patch('/edit/userName', ensureAuthenticated,(req, res) => {
     });
 })
 
-router.patch('/edit/emailAndPassword', ensureAuthenticated, (req, res) => {
+router.patch('/edit/emailAndPassword', (req, res) => {
     bcrypt.hash(req.body.password, saltRounds, function(err,hash){
         if(!err){
-            editUserEmailAndPassword(req.session.passport.user.id, req.body.email, hash, (result) => {
+            editUserEmailAndPassword(req.body.id, req.body.email, hash, (result) => {
                 if(result) res.send(apiResponse(200, "Change email/password successfully.", true, null))
                 else res.send(apiResponse(500, "Cannot change email/password.", false, null))
             });

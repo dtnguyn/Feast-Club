@@ -90,6 +90,19 @@ form{
     color: #eb8242;
 }
 
+.forget-password-link {
+  font-family: Montserat-Bold;
+  font-size: 15px;
+  margin-top: 10px;
+  color: #eb8242;
+}
+
+
+.forget-password-link:active {
+  color: #e29769;
+}
+
+
 .brand-icon{
   display: inline;
   font-size: 5rem;

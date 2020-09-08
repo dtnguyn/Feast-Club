@@ -16,10 +16,12 @@ function InfoNavbar(){
         history.push(route)
     }
 
+
     return(
         <Navbar className="info-navbar">
             <Navbar.Brand >
                 <Logo 
+                    onClick={() => changePage("/")}
                     size="sm"
                 />
             </Navbar.Brand>
@@ -30,6 +32,8 @@ function InfoNavbar(){
                 </div>
         </Navbar>
     );
+
+
 }
 
 export default InfoNavbar;
