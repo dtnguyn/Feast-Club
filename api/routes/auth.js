@@ -40,16 +40,6 @@ router.use(bodyParser.urlencoded({extended: true}));
 //passport config
 router.use(cookieParser(process.env.SESSION_SECRET))
 
-// router.use(session({
-//     secret: process.env.SESSION_SECRET,
-//     resave: true,
-//     saveUninitialized: true
-// }));
-
-// router.use(passport.initialize());
-// router.use(passport.session());
-
-
 passport.use(new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password'
@@ -137,11 +127,11 @@ const addUser = async (name, email, password, callback) => {
             [id, email]
         )
         await pool.query("COMMIT")
-        callback(apiResponse(200, "Register successfully", true, null))
+        callback(true)
     } catch (e){
         console.log(e);
         pool.query("ROLLBACK");
-        callback(apiResponse(400, `Fail to register: ${e}`, false, null))
+        callback(false)
     }  
 }
 
@@ -155,11 +145,11 @@ const addOauthUser = async (id, email, name, callback) => {
         await pool.query("INSERT INTO user_ids VALUES ($1, $2)", [id, email] );
         await pool.query("COMMIT");
     
-        callback(apiResponse(200, "Register successfully", true, null))
+        callback(true)
     } catch (e){
         console.log(e);
         pool.query("ROLLBACK");
-        callback(apiResponse(400, `Fail to register: ${e}`, false, null))
+        callback(false)
     }
 }
 
@@ -315,10 +305,10 @@ async function insertOrUpdateVerifyCode(userId, email, callback){
             if (table.rowCount == 1){
                 console.log("Success");
                 sendEmail(email, code);
-                callback(apiResponse(200, "Generating code successfully!", true, null))
+                callback(true)
             } else {
                 console.log("Fail: " + table.rowCount)
-                callback(apiResponse(500, "Something went wrong!", false, null))
+                callback(false)
             }
         } else if(result.rowCount == 0) {
             let table = await pool.query
@@ -329,10 +319,10 @@ async function insertOrUpdateVerifyCode(userId, email, callback){
             if (table.rowCount == 1){
                 console.log("Success");
                 sendEmail(email, code);
-                callback(apiResponse(200, "Generating code successfully!", true, null))
+                callback(true)
             } else {
                 console.log("Fail: " + table.rowCount)
-                callback(apiResponse(500, "Something went wrong!", false, null))
+                callback(false)
             }
         }
     } catch(error){
@@ -350,15 +340,15 @@ async function verifyCode(userId, code, callback){
         let result = await pool.query ("SELECT * FROM verify_codes WHERE user_id = $1 AND code = $2",[userId, code])
         if(result.rowCount == 1){
             console.log("Success!")
-            if(result.rows[0].expire_time > new Date()) callback(apiResponse(200, "Code verifed", true, null))
+            if(result.rows[0].expire_time > new Date()) callback(true)
             else callback(false)
         } else {
             console.log("Fail: " + result.rowCount)
-            callback(apiResponse(200, "Code Expired!", false, null))
+            callback(false)
         }
     } catch(error){
         console.log("Fail: " + error);
-        callback(apiResponse(500, "Something went wrong!", false, null))
+        callback(false)
     }
 }
 
@@ -375,10 +365,10 @@ router
             req.session.destroy();
             req.logout();
             console.log(req.isAuthenticated());
-            if(req.isAuthenticated()) res.send(apiResponse(200, "Logging out succesfully", true, null));
-            else res.send(apiResponse(500, "An error has occured when logging out", false, null))
+            if(req.isAuthenticated()) res.send(apiResponse(500, "An error has occured when logging out", false, null))
+            else res.send(apiResponse(200, "Logging out succesfully", true, null));
         } else{
-            res.send(apiResponse(401, "You haven't logged in yet", false, null))
+            res.send(apiResponse(200, "Logging out succesfully", true, null));
         }
     })
 
@@ -393,13 +383,13 @@ router
 router
     .route("/google/feast_club")
     .get(passport.authenticate('google'), (req, res) => {
-        res.status(200).redirect('http://localhost:3000/mainPage');
+        res.status(200).redirect('http://localhost:3000/');
     })
 
 router
     .route("/facebook/feast_club")
     .get(passport.authenticate('facebook'), (req, res) => {
-        res.status(200).redirect('http://localhost:3000/mainPage');
+        res.status(200).redirect('http://localhost:3000/');
     })
 
 router
@@ -408,16 +398,18 @@ router
         const id = req.query.id
         const email = req.query.email
         console.log("Getting code...", id, email)
-        insertOrUpdateVerifyCode(id, email, (apiResponse) => {
-            res.send(apiResponse)
+        insertOrUpdateVerifyCode(id, email, (result) => {
+            if(result) res.send(apiResponse(200, "Insert/Update code successfully.", true, null))
+            else res.send(apiResponse(200, "Fail to insert/update verify code ", false, null))
         })
     })
     .post((req, res) => {
         console.log("Checking code...")
         const id = req.body.id
         const code = req.body.code
-        verifyCode(id, code, (apiResponse) => {
-            res.send(apiResponse);
+        verifyCode(id, code, (result) => {
+            if(result) res.send(apiResponse(200, "Code verified.", true, null))
+            else res.send(apiResponse(200, "Fail to verify code.", false, null));
         })
     })
 
@@ -442,10 +434,15 @@ router
     
         bcrypt.hash(password, saltRounds, function(err,hash){
             if(!err){
-                addUser(name, email, hash, (apiResponse) => {
-                    res.send(apiResponse)
+                addUser(name, email, hash, (result) => {
+                    if(result){
+                        res.send(apiResponse(200, "Add user sucessfully.", true, null));
+                    } else {
+                        res.send(apiResponse(500, "Fail to add user.", false, null))
+                    }
+                    
                 });
-            } else {+
+            } else {
                 console.log(err);
             }
         })

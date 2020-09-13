@@ -8,10 +8,11 @@ export default async (lat, lng, updateLocation) => {
         lat,
         lng
     }
+    Geocode.setLanguage("en");
     const cityCountry = [];
     Geocode.fromLatLng(latLng.lat, latLng.lng).then(
         response => {
-            const resultArray = response.results[0].address_components
+            const resultArray = response.results[0].address_components  
             resultArray.forEach((component) => {
                 if(component.types.includes("administrative_area_level_1")){
                     cityCountry.push(component.long_name);

@@ -106,7 +106,7 @@ function RegisterBox(){
     return(
         <div className="right-page">
             <div className="form-register">
-                <h3>Register</h3>
+                <h3 className="h3-title">Register</h3>
                 <form>
                     <div>
                         <label className="register-label">Your name</label>

@@ -143,17 +143,17 @@ async function editUserAvatar(userID, url, isOauth, callback){
         let result;
         if(isOauth === true){
             result = await pool.query
-            (editOauthAvatarQuery,[url, userID])
+            (editOauthAvatarQuery,[url, userID + ""])
         } else {
             result = await pool.query
-            (editAvatarQuery, [url, userID])
+            (editAvatarQuery, [url, userID + ""])
         }
         
         if(result.rowCount == 1){
             console.log("Successful!");
             callback(true);
         } else {
-            console.log("Fail to edit avatar!");
+            console.log("Fail to edit avatar! ", userID, url);
             callback(false);
         }
        
@@ -192,7 +192,8 @@ router.patch('/edit/emailAndPassword', (req, res) => {
 })
 
 router.patch('/edit/avatar', ensureAuthenticated, multer.single('image') ,(req, res) => {
-    uploadAvatar(req.session.passport.user.id, req.file, req.query.isOauth, (result) => {
+    console.log("avatar user is: ", req.query.id)
+    uploadAvatar(req.query.id, req.file, req.query.isOauth, (result) => {
         if(result) res.send(apiResponse(200, "Change avatar successfully.", true, null))
         else res.send(apiResponse(500, "Cannot change avatar.", false, null))
     })

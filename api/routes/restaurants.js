@@ -67,30 +67,34 @@ const nearbyrestaurants = require('../nearbyRestaurants');
 
 
 function getNearbyRestaurantsByTripsAdvisor(lat,lng, callback){
-    // var req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
+    var req = unirest("GET", "https://tripadvisor1.p.rapidapi.com/restaurants/list-by-latlng");
 
-    // req.query({
-    //     "limit": "30",
-    //     "currency": "USD",
-    //     "distance": "2",
-    //     "lunit": "km",
-    //     "lang": "en_US",
-    //     "latitude": lat,
-    //     "longitude": lng
-    // });
+    req.query({
+        "limit": "30",
+        "currency": "USD",
+        "distance": "2",
+        "lunit": "km",
+        "lang": "en_US",
+        "latitude": lat,
+        "longitude": lng
+    });
     
-    // req.headers({
-    //     "x-rapidapi-host": "tripadvisor1.p.rapidapi.com",
-    //     "x-rapidapi-key": process.env.TRIP_ADVISOR_API_KEY
-    // });
+    req.headers({
+        "x-rapidapi-host": "tripadvisor1.p.rapidapi.com",
+        "x-rapidapi-key": process.env.TRIP_ADVISOR_API_KEY
+    });
     
     
-    // req.end(function (res) {
-    //     if (res.error) throw new Error(res.error);
-    //     callback(res.body);
-    // });
+    req.end(function (res) {
+        if (res.error) throw new Error(res.error);
+        console.log(res.body);
+        const data = res.body.data.filter(restaurant => {
+            return (restaurant.name != undefined && restaurant.name != null && restaurant.name != "")
+        })
+        callback({data});
+    });
      
-    callback(nearbyrestaurants);
+    //callback(nearbyrestaurants);
     
 }
 

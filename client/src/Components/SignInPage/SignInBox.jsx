@@ -171,7 +171,7 @@ function SignInBox(){
     return(
         <div>
             <div className="form-sign-in">
-                <h3>Sign in</h3>
+                <h3 className="sign-in-title">Sign in</h3>
                 <form>
                     <div>
                         <label className="sign-in-label">Your email</label>

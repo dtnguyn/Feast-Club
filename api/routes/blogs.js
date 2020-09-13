@@ -68,10 +68,9 @@ function getImageForCity(city, callback){
     const req = unirest("GET", "https://pixabay.com/api/");
     req.query({
         "key": process.env.PIXABAY_API_KEY,
-        "q": "New York",
+        "q": city,
         "image_type": "photo",
-        "orientation": "horizontal",
-        "min_width": 1000
+        "orientation": "horizontal"
     });
 
     req.end(function (res) {

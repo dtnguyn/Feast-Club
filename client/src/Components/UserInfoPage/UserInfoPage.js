@@ -6,14 +6,13 @@ import LinearProgress from '@material-ui/core/LinearProgress';
 import { useSelector } from "react-redux"
 import axios from 'axios'
 import FormDialog from "../SharedComponents/FormDialog"
-import {currentUserSignIn } from "../../actions";
-import { useDispatch } from "react-redux";
 import { useHistory } from 'react-router-dom';
 import TabView from './TabView';
 import ComposeDialog from '../ExplorePage/ComposeDialog'
 import ConfirmDialog from '../SharedComponents/ConfirmDialog'
 import Footer from '../SharedComponents/Footer'
-
+import {currentUserSignIn, signOut, signIn } from "../../actions";
+import { useDispatch } from "react-redux"
 
 import "../../styles/UserInfoPage.css";
 import "../../styles/Shared.css";
@@ -61,11 +60,7 @@ const UserInfoPage = () => {
         })
     }
 
-    
-    
-    if(!isLoggedIn){
-        setLoginDialog(true)
-    }
+
 
     const getVerificationEmail = (email, id) => {
         console.log("Click")
@@ -117,6 +112,7 @@ const UserInfoPage = () => {
         console.log("Change avatar!", formData, newAvatar)
         axios.patch("http://localhost:5000/user/edit/avatar", formData, {
             params: {
+                id: currentUser.id,
                 isOauth: currentUser.isOauth
             },
             withCredentials: true
@@ -251,7 +247,26 @@ const UserInfoPage = () => {
 
 
     const logOut = () => {
-        history.push("/signin");
+        setLoading(true)
+        axios.get("http://localhost:5000/auth/logout", {withCredentials: true})  
+            .then((response) => {
+                setLoading(false)
+                const apiResponse = response.data
+                if(apiResponse.status){
+                    console.log("Log out successfully");
+                    dispatch(signOut());
+                    history.push("/signin");
+                } else {
+                    alert("Can't log out.")
+                }
+            })
+            .catch((err) => {
+                setLoading(false)
+                alert(err)
+                console.log(err);
+            })
+        
+        
     }
 
     const getUserBlogs = () => {
@@ -275,13 +290,26 @@ const UserInfoPage = () => {
             })
     }
 
+    const checkAuthentication = () => {
+        axios.get("http://localhost:5000/auth/",
+        {withCredentials: true})
+            .then((response) => {
+                const apiResponse = response.data;
+                if(apiResponse.status){
+                    dispatch(signIn());
+                } else {
+                    logOut();
+                }
+            })
+    }
+
     useEffect(() => {
+        checkAuthentication();
         getUserBlogs()
     }, [])
 
-    return(
-        <div className="page">
-            <InfoNavbar/>
+    if(!isLoggedIn){
+        return(
             <AlertDialog
                 open={loginDialog}
                 alertTitle="Login first!"
@@ -292,6 +320,13 @@ const UserInfoPage = () => {
                     }
                 }
             />
+        )
+    }
+
+    return(
+        <div className="page">
+            <InfoNavbar/>
+            
             <div className="user-info-page">
                 {
                     openUserNameDialog 
@@ -356,6 +391,7 @@ const UserInfoPage = () => {
                 <UserInfoCard 
                     imageAction={changeAvatar}
                     postCount={blogs.userBlogs.length}
+                    logOut={logOut}
                     startLoading={() => setLoading(true)} 
                     stopLoading={() => setLoading(false)} 
                     openFormDialog={() => setOpenUserNameDialog(true)}

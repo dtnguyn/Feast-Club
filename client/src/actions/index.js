@@ -24,7 +24,7 @@ export const currentUserSignIn = (userInfo) => {
     }
 }
 
-export const currentUserSignOUt = () => {
+export const currentUserSignOut = () => {
     return {
         type: "USER_SIGN_OUT",
         payload: null

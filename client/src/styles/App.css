@@ -1,4 +1,7 @@
 
+::-webkit-scrollbar {
+  display: none;
+}
 
 .brand-icon-container {
   margin: auto;

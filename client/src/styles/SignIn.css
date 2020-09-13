@@ -5,6 +5,11 @@
 
 /* Sign in Box */
 
+.sign-in-title{
+  color: #f6da63;
+  font-family: Montserrat-Bold;
+}
+
 .div-sign-in{
     height: 100vh;
     background-color: #eb8242;
@@ -39,8 +44,7 @@ form{
     border: none;
     outline: none;
     color: #eb8242;
-
-  }
+}
   
 .line-box {
     position: relative;

@@ -1,10 +1,10 @@
 const getBlogsQuery 
 = "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
-"(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+"(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, users.name as author_name, restaurant_name, restaurant_address, content, date_posted " +
 "FROM user_blogs, users " +
 "WHERE user_blogs.user_id = users.id " +
 "UNION ALL " +
-"SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+"SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, oauth_users.name as author_name, restaurant_name, restaurant_address, content, date_posted " +
 "FROM user_blogs, oauth_users " +
 "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
 
@@ -49,11 +49,11 @@ const getBlogsQuery
 
 const getUserBlogsQuery 
 = "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
-"(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+"(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, users.name as author_name, restaurant_name, restaurant_address, content, date_posted " +
 "FROM user_blogs, users " +
 "WHERE user_blogs.user_id = users.id " +
 "UNION ALL " +
-"SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+"SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, oauth_users.name as author_name, restaurant_name, restaurant_address, content, date_posted " +
 "FROM user_blogs, oauth_users " +
 "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
 
@@ -148,11 +148,11 @@ const getUserLikedBlogsQuery
 
 const searchBlogsPostQuery
 = "SELECT id, user_id, user_ava, author_name, restaurant_name, restaurant_address, content, city, country, images, hearts::INTEGER, is_hearted, comments::INTEGER, date_posted, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
-"(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+"(SELECT user_blogs.id, user_blogs.user_id, users.avatar as user_ava, users.name as author_name, restaurant_name, restaurant_address, content, date_posted " +
 "FROM user_blogs, users " +
 "WHERE user_blogs.user_id = users.id " +
 "UNION ALL " +
-"SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, author_name, restaurant_name, restaurant_address, content, date_posted " +
+"SELECT user_blogs.id, user_blogs.user_id, oauth_users.avatar as user_ava, oauth_users.name as author_name, restaurant_name, restaurant_address, content, date_posted " +
 "FROM user_blogs, oauth_users " +
 "WHERE user_blogs.user_id = oauth_users.id) as blogs " +
 
@@ -234,11 +234,11 @@ const deleteHeartQuery
 
 const getCommentsQuery
 = "SELECT *, TO_CHAR(Date(date_posted), 'DD Mon YYYY') as date FROM " +
-"(SELECT user_blog_comments.id as comment_id, blog_id, user_id, author_name, comment_content, users.avatar, date_posted " +
+"(SELECT user_blog_comments.id as comment_id, blog_id, user_id, users.name as author_name, comment_content, users.avatar, date_posted " +
 "FROM user_blog_comments, users " +
 "WHERE user_id = users.id " +
 "UNION ALL " +
-"SELECT user_blog_comments.id as comment_id, blog_id, user_id, author_name, comment_content, oauth_users.avatar, date_posted " +
+"SELECT user_blog_comments.id as comment_id, blog_id, user_id, oauth_users.name as author_name, comment_content, oauth_users.avatar, date_posted " +
 "FROM user_blog_comments, oauth_users " +
 "WHERE user_id = oauth_users.id) as comments " +
 "WHERE blog_id = $1 " +

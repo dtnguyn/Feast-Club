@@ -28,7 +28,7 @@ function InfoNavbar(){
             <div className="navbar-icon">
                     <FontAwesomeIcon className="window-info-icon" icon={faGlobeAsia} onClick={() => changePage("/explore")}/>
                     <FontAwesomeIcon className="window-info-icon" icon={faUser} onClick={() => changePage("/userinfo")}/>
-                    <FontAwesomeIcon id="compass" className="window-info-icon" icon={faMapMarked} onClick={() => changePage("/mainpage")}/>
+                    <FontAwesomeIcon id="compass" className="window-info-icon" icon={faMapMarked} onClick={() => changePage("/")}/>
                 </div>
         </Navbar>
     );

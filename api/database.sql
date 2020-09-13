@@ -151,7 +151,7 @@ left JOIN (
 	SELECT blog_id, COUNT(blog_id) as is_hearted FROM(
 		SELECT blog_id
 		FROM user_blog_hearts
-		WHERE user_id = '103545972077000374345'
+		WHERE user_id = '7d0d7e80-40d4-4b70-aaf5-6888f1b43ec0'
 		) as a
 	GROUP BY blog_id
 ) as is_hearted
@@ -164,5 +164,5 @@ FROM user_blog_comments
 GROUP BY blog_id
 ) as comments ON comments.blog_id = id 
 
-WHERE city = 'Hồ Chí Minh' AND country = 'Vietnam' 
+WHERE city = 'Thành phố Hồ Chí Minh' AND country = 'Vietnam' 
 ORDER BY date_posted DESC

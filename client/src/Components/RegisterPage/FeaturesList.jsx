@@ -4,7 +4,7 @@ import '../../styles/Register.css';
 function FeaturesList(){
     return(
         <div>
-            <h3>We can help you</h3>
+            <h3 className="h3-title">We can help you</h3>
             <ul>
                 <li>Find places to eat nearby</li>
                 <li>Explore more places to eat in your city</li>

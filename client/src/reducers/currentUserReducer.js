@@ -11,11 +11,7 @@ state = {
                 return action.payload;
             else return state
         case 'USER_SIGN_OUT':
-            return {
-                id: "",
-                name: "",
-                email: ""
-            };
+            return null
         default:
             return state;
     }

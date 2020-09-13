@@ -49,7 +49,7 @@ const UserInfoCard = (props) => {
                             : <p className="user-info-card-text">{props.postCount} Post </p> 
                     }
                     
-                    <a className="user-info-card-text link" href="#" onClick={() => history.push("/signin")} >Log out</a>
+                    <a className="user-info-card-text link" href="#" onClick={props.logOut} >Log out</a>
                 </div>
             </div>
         </div>

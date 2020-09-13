@@ -44,7 +44,8 @@
   }
   
 ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
-    color: #f6da63;}
+    color: #f6da63;
+}
 
 .window-info-title{
     margin: 10%;
